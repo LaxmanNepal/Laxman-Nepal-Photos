@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laxman Nepal Photo Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            color: #e0e0e0;
+        }
+        
+        .search-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            padding: 12px 20px;
+            width: 100%;
+            max-width: 400px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .folders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .folder-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .folder-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .folder-thumb {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .folder-info {
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .folder-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .image-count {
+            font-size: 0.85rem;
+            color: #bdbdbd;
+        }
+        
+        .gallery-view {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            width: fit-content;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .gallery-title {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .image-item {
+            border-radius: 10px;
+            overflow: hidden;
+            height: 150px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            transform-origin: center;
+            transition: transform 0.3s;
+        }
+        
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+        }
+        
+        .modal-controls {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .modal-controls button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .modal-controls button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.5rem;
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .folders-grid, .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Laxman Nepal Gallery</h1>
+            <p class="description">Browse through the collection of photos organized in folders</p>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search folders...">
+            </div>
+        </header>
+        
+        <main>
+            <div class="folders-view" id="folders-view">
+                <div class="folders-grid" id="folders-container">
+                    <!-- Folders will be dynamically added here -->
+                </div>
+            </div>
+            
+            <div class="gallery-view" id="gallery-view">
+                <div class="back-button" id="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Folders</span>
+                </div>
+                <h2 class="gallery-title" id="gallery-title">Folder Name</h2>
+                <div class="images-grid" id="images-container">
+                    <!-- Images will be dynamically added here -->
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="modal" id="image-modal">
+        <div class="close-modal" id="close-modal">
+            <i class="fas fa-times"></i>
+        </div>
+        <div class="modal-content" id="modal-content">
+            <img id="modal-image" src="" alt="">
+        </div>
+        <div class="modal-controls">
+            <button id="prev-button"><i class="fas fa-chevron-left"></i></button>
+            <button id="next-button"><i class="fas fa-chevron-right"></i></button>
+            <button id="download-button"><i class="fas fa-download"></i></button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const foldersContainer = document.getElementById('folders-container');
+            const imagesContainer = document.getElementById('images-container');
+            const foldersView = document.getElementById('folders-view');
+            const galleryView = document.getElementById('gallery-view');
+            const backButton = document.getElementById('back-button');
+            const galleryTitle = document.getElementById('gallery-title');
+            const searchInput = document.getElementById('search-input');
+            const imageModal = document.getElementById('image-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalContent = document.getElementById('modal-content');
+            const closeModal = document.getElementById('close-modal');
+            const prevButton = document.getElementById('prev-button');
+            const nextButton = document.getElementById('next-button');
+            const downloadButton = document.getElementById('download-button');
+            
+            // State variables
+            let folders = [];
+            let currentImages = [];
+            let currentImageIndex = 0;
+            let currentScale = 1;
+            let lastTouchDistance = null;
+            
+            // GitHub repository information
+            const username = 'LaxmanNepal';
+            const repo = 'Laxman-Nepal-Photos';
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/`;
+            
+            // Initialize the app
+            function init() {
+                fetchFolders();
+                setupEventListeners();
+            }
+            
+            // Set up event listeners
+            function setupEventListeners() {
+                backButton.addEventListener('click', showFoldersView);
+                searchInput.addEventListener('input', handleSearch);
+                closeModal.addEventListener('click', closeImageModal);
+                prevButton.addEventListener('click', showPrevImage);
+                nextButton.addEventListener('click', showNextImage);
+                downloadButton.addEventListener('click', downloadImage);
+                
+                // Keyboard navigation
+                document.addEventListener('keydown', function(e) {
+                    if (imageModal.style.display === 'flex') {
+                        if (e.key === 'Escape') closeImageModal();
+                        if (e.key === 'ArrowLeft') showPrevImage();
+                        if (e.key === 'ArrowRight') showNextImage();
+                    }
+                });
+                
+                // Touch events for swipe and pinch-to-zoom
+                modalContent.addEventListener('touchstart', handleTouchStart, { passive: false });
+                modalContent.addEventListener('touchmove', handleTouchMove, { passive: false });
+                modalContent.addEventListener('touchend', handleTouchEnd);
+                
+                // Double-tap to zoom
+                modalContent.addEventListener('dblclick', handleDoubleTap);
+            }
+            
+            // Fetch folders from GitHub repository
+            async function fetchFolders() {
+                try {
+                    foldersContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Loading folders...</div>';
+                    
+                    const response = await fetch(apiUrl);
+                    if (!response.ok) throw new Error('Failed to fetch repository contents');
+                    
+                    const data = await response.json();
+                    
+                    // Filter out non-folder items and get folders
+                    const folderPromises = data
+                        .filter(item => item.type === 'dir')
+                        .map(async folder => {
+                            try {
+                                // Get folder contents to count images and get a thumbnail
+                                const folderResponse = await fetch(folder.url);
+                                if (!folderResponse.ok) throw new Error('Failed to fetch folder contents');
+                                
+                                const folderData = await folderResponse.json();
+                                
+                                // Filter image files
+                                const images = folderData
+                                    .filter(item => 
+                                        item.type === 'file' && 
+                                        /\.(jpg|jpeg|png|gif|webp)$/i.test(item.name)
+                                    )
+                                    .map(item => item.download_url);
+                                
+                                return {
+                                    name: folder.name,
+                                    imageCount: images.length,
+                                    thumbnail: images[0] || 'https://via.placeholder.com/150?text=No+Image',
+                                    images: images
+                                };
+                            } catch (error) {
+                                console.error(`Error processing folder ${folder.name}:`, error);
+                                return {
+                                    name: folder.name,
+                                    imageCount: 0,
+                                    thumbnail: 'https://via.placeholder.com/150?text=Error',
+                                    images: []
+                                };
+                            }
+                        });
+                    
+                    folders = await Promise.all(folderPromises);
+                    renderFolders(folders);
+                } catch (error) {
+                    console.error('Error fetching repository:', error);
+                    foldersContainer.innerHTML = '<div class="loading">Error loading folders. Please check the console for details.</div>';
+                }
+            }
+            
+            // Render folders
+            function renderFolders(foldersToRender) {
+                foldersContainer.innerHTML = '';
+                
+                if (foldersToRender.length === 0) {
+                    foldersContainer.innerHTML = '<div class="loading">No folders found</div>';
+                    return;
+                }
+                
+                foldersToRender.forEach((folder, index) => {
+                    const folderElement = document.createElement('div');
+                    folderElement.className = 'folder-card';
+                    folderElement.innerHTML = `
+                        <img src="${folder.thumbnail}" alt="${folder.name}" class="folder-thumb">
+                        <div class="folder-info">
+                            <div class="folder-name">${folder.name}</div>
+                            <div class="image-count">${folder.imageCount} images</div>
+                        </div>
+                    `;
+                    
+                    folderElement.addEventListener('click', () => {
+                        showGalleryView(index);
+                    });
+                    
+                    foldersContainer.appendChild(folderElement);
+                });
+            }
+            
+            // Show gallery view
+            function showGalleryView(folderIndex) {
+                const folder = folders[folderIndex];
+                currentImages = folder.images;
+                
+                // Update UI
+                foldersView.style.display = 'none';
+                galleryView.style.display = 'block';
+                galleryTitle.textContent = folder.name;
+                
+                // Render images
+                imagesContainer.innerHTML = '';
+                
+                if (currentImages.length === 0) {
+                    imagesContainer.innerHTML = '<div class="loading">No images in this folder</div>';
+                    return;
+                }
+                
+                currentImages.forEach((image, index) => {
+                    const imageElement = document.createElement('div');
+                    imageElement.className = 'image-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = image;
+                    img.alt = `Image ${index + 1}`;
+                    img.loading = 'lazy'; // Lazy loading
+                    
+                    imageElement.appendChild(img);
+                    
+                    imageElement.addEventListener('click', () => {
+                        openImageModal(index);
+                    });
+                    
+                    imagesContainer.appendChild(imageElement);
+                });
+            }
+            
+            // Show folders view
+            function showFoldersView() {
+                galleryView.style.display = 'none';
+                foldersView.style.display = 'block';
+                resetZoom(); // Reset zoom when going back
+            }
+            
+            // Handle search
+            function handleSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                if (searchTerm === '') {
+                    renderFolders(folders);
+                    return;
+                }
+                
+                const filteredFolders = folders.filter(folder => 
+                    folder.name.toLowerCase().includes(searchTerm)
+                );
+                
+                renderFolders(filteredFolders);
+            }
+            
+            // Open image modal
+            function openImageModal(index) {
+                currentImageIndex = index;
+                modalImage.src = currentImages[currentImageIndex];
+                imageModal.style.display = 'flex';
+                resetZoom();
+            }
+            
+            // Close image modal
+            function closeImageModal() {
+                imageModal.style.display = 'none';
+                resetZoom();
+            }
+            
+            // Show next image
+            function showNextImage() {
+                currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+                modalImage.src = currentImages[currentImageIndex];
+                resetZoom();
+            }
+            
+            // Show previous image
+            function showPrevImage() {
+                currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+                modalImage.src = currentImages[currentImageIndex];
+                resetZoom();
+            }
+            
+            // Download image
+            function downloadImage() {
+                const imageUrl = currentImages[currentImageIndex];
+                const fileName = `laxman-nepal-${currentImageIndex + 1}.jpg`;
+                
+                // Create a temporary anchor element
+                const a = document.createElement('a');
+                a.href = imageUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
+            // Reset zoom
+            function resetZoom() {
+                currentScale = 1;
+                modalContent.style.transform = 'scale(1)';
+            }
+            
+            // Handle double tap for zoom
+            function handleDoubleTap() {
+                if (currentScale === 1) {
+                    currentScale = 2;
+                } else {
+                    currentScale = 1;
+                }
+                modalContent.style.transform = `scale(${currentScale})`;
+            }
+            
+            // Handle touch events for swipe and pinch-to-zoom
+            function handleTouchStart(e) {
+                if (e.touches.length === 2) {
+                    // Pinch start - calculate initial distance between fingers
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    lastTouchDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                }
+            }
+            
+            function handleTouchMove(e) {
+                if (e.touches.length === 1 && currentScale === 1) {
+                    // Single touch move - swipe for navigation
+                    // This would be implemented with more complex logic for proper swipe detection
+                } else if (e.touches.length === 2) {
+                    // Pinch move - zoom in/out
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    
+                    if (lastTouchDistance !== null) {
+                        const scaleChange = currentDistance / lastTouchDistance;
+                        currentScale *= scaleChange;
+                        // Limit scale between 1 and 5
+                        currentScale = Math.max(1, Math.min(5, currentScale));
+                        modalContent.style.transform = `scale(${currentScale})`;
+                    }
+                    
+                    lastTouchDistance = currentDistance;
+                }
+            }
+            
+            function handleTouchEnd() {
+                lastTouchDistance = null;
+            }
+            
+            // Initialize the app
+            init();
+        });
+    </script>
+</body>
+</html>
