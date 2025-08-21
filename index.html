@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laxman Nepal Photo Gallery</title>
+    <title>Laxman Nepal Gallery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: #fff;
+            background-color: #ffffff;
+            color: #202124;
             min-height: 100vh;
             padding-bottom: 60px;
         }
@@ -23,89 +23,108 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 16px;
         }
         
         header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 100;
+            padding: 16px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 16px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .description {
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto 20px;
-            color: #e0e0e0;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #5f6368;
         }
         
         .search-box {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            position: relative;
         }
         
         .search-box input {
-            padding: 12px 20px;
+            padding: 14px 20px 14px 48px;
             width: 100%;
-            max-width: 400px;
-            border: none;
-            border-radius: 30px;
+            max-width: 500px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
             font-size: 1rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.1);
+            transition: box-shadow 0.2s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            box-shadow: 0 1px 10px rgba(32, 33, 36, 0.2);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5f6368;
         }
         
         .folders-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
             margin-bottom: 30px;
         }
         
         .folder-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            background: #fff;
+            border-radius: 12px;
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f1f3f4;
         }
         
         .folder-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
         
         .folder-thumb {
             width: 100%;
-            height: 120px;
+            height: 140px;
             object-fit: cover;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid #f1f3f4;
         }
         
         .folder-info {
-            padding: 15px;
+            padding: 12px;
             text-align: center;
         }
         
         .folder-name {
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 500;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #202124;
         }
         
         .image-count {
-            font-size: 0.85rem;
-            color: #bdbdbd;
+            font-size: 0.8rem;
+            color: #5f6368;
         }
         
         .gallery-view {
@@ -118,45 +137,57 @@
             align-items: center;
             margin-bottom: 20px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 500;
             width: fit-content;
             padding: 8px 16px;
             border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            color: #5f6368;
+            transition: background 0.2s;
         }
         
         .back-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.05);
         }
         
         .gallery-title {
             margin-bottom: 20px;
-            font-size: 1.8rem;
-            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: #202124;
         }
         
         .images-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 4px;
         }
         
         .image-item {
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
-            height: 150px;
+            height: 180px;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: transform 0.2s, opacity 0.2s;
+            position: relative;
         }
         
         .image-item:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
         
         .image-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: opacity 0.3s;
+        }
+        
+        .image-item .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #5f6368;
         }
         
         .modal {
@@ -166,11 +197,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 100;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
             touch-action: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .modal.show {
+            opacity: 1;
         }
         
         .modal-content {
@@ -185,48 +222,68 @@
             height: auto;
             max-height: 80vh;
             object-fit: contain;
+            border-radius: 4px;
         }
         
         .modal-controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 24px;
             display: flex;
-            gap: 15px;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px;
+            border-radius: 50px;
         }
         
         .modal-controls button {
-            background: rgba(255, 255, 255, 0.2);
+            background: transparent;
             border: none;
             color: white;
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .modal-controls button:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
         }
         
         .close-modal {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 2rem;
+            top: 24px;
+            right: 24px;
+            font-size: 1.8rem;
             color: white;
             cursor: pointer;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
         
         .loading {
             text-align: center;
             padding: 40px;
-            font-size: 1.5rem;
+            font-size: 1.1rem;
+            color: #5f6368;
         }
         
         .loading i {
             animation: spin 1s linear infinite;
+            margin-right: 8px;
         }
         
         @keyframes spin {
@@ -234,13 +291,52 @@
             100% { transform: rotate(360deg); }
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
         @media (max-width: 768px) {
-            .folders-grid, .images-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            .folders-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .image-item {
+                height: 150px;
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 1.3rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .search-box {
+                width: 100%;
             }
         }
     </style>
@@ -248,10 +344,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>Laxman Nepal Gallery</h1>
-            <p class="description">Browse through the collection of photos organized in folders</p>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Search folders...">
+            <div class="header-content">
+                <h1>Laxman Nepal Gallery</h1>
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Search folders...">
+                </div>
             </div>
         </header>
         
@@ -313,6 +411,8 @@
             let currentImageIndex = 0;
             let currentScale = 1;
             let lastTouchDistance = null;
+            let startX = 0;
+            let isSwiping = false;
             
             // GitHub repository information
             const username = 'LaxmanNepal';
@@ -321,14 +421,32 @@
             
             // Initialize the app
             function init() {
+                showSkeletonLoading();
                 fetchFolders();
                 setupEventListeners();
+            }
+            
+            // Show skeleton loading UI
+            function showSkeletonLoading() {
+                foldersContainer.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const skeletonElement = document.createElement('div');
+                    skeletonElement.className = 'folder-card';
+                    skeletonElement.innerHTML = `
+                        <div class="folder-thumb skeleton" style="height: 140px;"></div>
+                        <div class="folder-info">
+                            <div class="folder-name skeleton" style="height: 16px; width: 80%; margin: 0 auto 8px;"></div>
+                            <div class="image-count skeleton" style="height: 14px; width: 50%; margin: 0 auto;"></div>
+                        </div>
+                    `;
+                    foldersContainer.appendChild(skeletonElement);
+                }
             }
             
             // Set up event listeners
             function setupEventListeners() {
                 backButton.addEventListener('click', showFoldersView);
-                searchInput.addEventListener('input', handleSearch);
+                searchInput.addEventListener('input', debounce(handleSearch, 300));
                 closeModal.addEventListener('click', closeImageModal);
                 prevButton.addEventListener('click', showPrevImage);
                 nextButton.addEventListener('click', showNextImage);
@@ -336,7 +454,7 @@
                 
                 // Keyboard navigation
                 document.addEventListener('keydown', function(e) {
-                    if (imageModal.style.display === 'flex') {
+                    if (imageModal.classList.contains('show')) {
                         if (e.key === 'Escape') closeImageModal();
                         if (e.key === 'ArrowLeft') showPrevImage();
                         if (e.key === 'ArrowRight') showNextImage();
@@ -350,13 +468,27 @@
                 
                 // Double-tap to zoom
                 modalContent.addEventListener('dblclick', handleDoubleTap);
+                
+                // Mouse wheel zoom
+                modalContent.addEventListener('wheel', handleWheel, { passive: false });
+            }
+            
+            // Debounce function for search
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
             }
             
             // Fetch folders from GitHub repository
             async function fetchFolders() {
                 try {
-                    foldersContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Loading folders...</div>';
-                    
                     const response = await fetch(apiUrl);
                     if (!response.ok) throw new Error('Failed to fetch repository contents');
                     
@@ -377,14 +509,18 @@
                                 const images = folderData
                                     .filter(item => 
                                         item.type === 'file' && 
-                                        /\.(jpg|jpeg|png|gif|webp)$/i.test(item.name)
+                                        /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(item.name)
                                     )
-                                    .map(item => item.download_url);
+                                    .map(item => ({
+                                        url: item.download_url,
+                                        name: item.name,
+                                        size: item.size
+                                    }));
                                 
                                 return {
                                     name: folder.name,
                                     imageCount: images.length,
-                                    thumbnail: images[0] || 'https://via.placeholder.com/150?text=No+Image',
+                                    thumbnail: images[0]?.url || 'https://via.placeholder.com/300/f5f5f5/999999?text=No+Images',
                                     images: images
                                 };
                             } catch (error) {
@@ -392,7 +528,7 @@
                                 return {
                                     name: folder.name,
                                     imageCount: 0,
-                                    thumbnail: 'https://via.placeholder.com/150?text=Error',
+                                    thumbnail: 'https://via.placeholder.com/300/f5f5f5/999999?text=Error',
                                     images: []
                                 };
                             }
@@ -417,9 +553,9 @@
                 
                 foldersToRender.forEach((folder, index) => {
                     const folderElement = document.createElement('div');
-                    folderElement.className = 'folder-card';
+                    folderElement.className = 'folder-card fade-in';
                     folderElement.innerHTML = `
-                        <img src="${folder.thumbnail}" alt="${folder.name}" class="folder-thumb">
+                        <img src="${folder.thumbnail}" alt="${folder.name}" class="folder-thumb" loading="lazy">
                         <div class="folder-info">
                             <div class="folder-name">${folder.name}</div>
                             <div class="image-count">${folder.imageCount} images</div>
@@ -454,13 +590,25 @@
                 
                 currentImages.forEach((image, index) => {
                     const imageElement = document.createElement('div');
-                    imageElement.className = 'image-item';
+                    imageElement.className = 'image-item fade-in';
+                    
+                    // Add loading indicator
+                    const loadingElement = document.createElement('div');
+                    loadingElement.className = 'loading';
+                    loadingElement.innerHTML = '<i class="fas fa-spinner"></i>';
                     
                     const img = document.createElement('img');
-                    img.src = image;
-                    img.alt = `Image ${index + 1}`;
-                    img.loading = 'lazy'; // Lazy loading
+                    img.src = image.url;
+                    img.alt = image.name;
+                    img.loading = 'lazy';
+                    img.style.opacity = '0';
                     
+                    img.onload = function() {
+                        img.style.opacity = '1';
+                        loadingElement.style.display = 'none';
+                    };
+                    
+                    imageElement.appendChild(loadingElement);
                     imageElement.appendChild(img);
                     
                     imageElement.addEventListener('click', () => {
@@ -475,12 +623,12 @@
             function showFoldersView() {
                 galleryView.style.display = 'none';
                 foldersView.style.display = 'block';
-                resetZoom(); // Reset zoom when going back
+                resetZoom();
             }
             
             // Handle search
             function handleSearch() {
-                const searchTerm = searchInput.value.toLowerCase();
+                const searchTerm = searchInput.value.toLowerCase().trim();
                 
                 if (searchTerm === '') {
                     renderFolders(folders);
@@ -497,35 +645,41 @@
             // Open image modal
             function openImageModal(index) {
                 currentImageIndex = index;
-                modalImage.src = currentImages[currentImageIndex];
+                modalImage.src = currentImages[currentImageIndex].url;
                 imageModal.style.display = 'flex';
+                setTimeout(() => {
+                    imageModal.classList.add('show');
+                }, 10);
                 resetZoom();
             }
             
             // Close image modal
             function closeImageModal() {
-                imageModal.style.display = 'none';
+                imageModal.classList.remove('show');
+                setTimeout(() => {
+                    imageModal.style.display = 'none';
+                }, 300);
                 resetZoom();
             }
             
             // Show next image
             function showNextImage() {
                 currentImageIndex = (currentImageIndex + 1) % currentImages.length;
-                modalImage.src = currentImages[currentImageIndex];
+                modalImage.src = currentImages[currentImageIndex].url;
                 resetZoom();
             }
             
             // Show previous image
             function showPrevImage() {
                 currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
-                modalImage.src = currentImages[currentImageIndex];
+                modalImage.src = currentImages[currentImageIndex].url;
                 resetZoom();
             }
             
             // Download image
             function downloadImage() {
-                const imageUrl = currentImages[currentImageIndex];
-                const fileName = `laxman-nepal-${currentImageIndex + 1}.jpg`;
+                const imageUrl = currentImages[currentImageIndex].url;
+                const fileName = currentImages[currentImageIndex].name;
                 
                 // Create a temporary anchor element
                 const a = document.createElement('a');
@@ -552,6 +706,19 @@
                 modalContent.style.transform = `scale(${currentScale})`;
             }
             
+            // Handle wheel for zoom
+            function handleWheel(e) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    // Zoom in
+                    currentScale = Math.min(5, currentScale + 0.1);
+                } else {
+                    // Zoom out
+                    currentScale = Math.max(0.5, currentScale - 0.1);
+                }
+                modalContent.style.transform = `scale(${currentScale})`;
+            }
+            
             // Handle touch events for swipe and pinch-to-zoom
             function handleTouchStart(e) {
                 if (e.touches.length === 2) {
@@ -563,14 +730,15 @@
                         touch2.clientX - touch1.clientX,
                         touch2.clientY - touch1.clientY
                     );
+                } else if (e.touches.length === 1 && currentScale === 1) {
+                    // Swipe start
+                    startX = e.touches[0].clientX;
+                    isSwiping = true;
                 }
             }
             
             function handleTouchMove(e) {
-                if (e.touches.length === 1 && currentScale === 1) {
-                    // Single touch move - swipe for navigation
-                    // This would be implemented with more complex logic for proper swipe detection
-                } else if (e.touches.length === 2) {
+                if (e.touches.length === 2) {
                     // Pinch move - zoom in/out
                     e.preventDefault();
                     const touch1 = e.touches[0];
@@ -583,17 +751,31 @@
                     if (lastTouchDistance !== null) {
                         const scaleChange = currentDistance / lastTouchDistance;
                         currentScale *= scaleChange;
-                        // Limit scale between 1 and 5
-                        currentScale = Math.max(1, Math.min(5, currentScale));
+                        // Limit scale between 0.5 and 5
+                        currentScale = Math.max(0.5, Math.min(5, currentScale));
                         modalContent.style.transform = `scale(${currentScale})`;
                     }
                     
                     lastTouchDistance = currentDistance;
+                } else if (e.touches.length === 1 && isSwiping && currentScale === 1) {
+                    // Swipe move
+                    const currentX = e.touches[0].clientX;
+                    const diffX = startX - currentX;
+                    
+                    if (Math.abs(diffX) > 50) {
+                        if (diffX > 0) {
+                            showNextImage();
+                        } else {
+                            showPrevImage();
+                        }
+                        isSwiping = false;
+                    }
                 }
             }
             
             function handleTouchEnd() {
                 lastTouchDistance = null;
+                isSwiping = false;
             }
             
             // Initialize the app
