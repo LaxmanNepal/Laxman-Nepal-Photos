@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laxman Nepal Gallery</title>
+    <title>Laxman Nepal GitHub Gallery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -27,7 +27,7 @@
             top: 0;
             background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
-            z-index: 100;
+            z-index: 1000;
             padding: 12px 16px;
             display: flex;
             justify-content: space-between;
@@ -42,7 +42,7 @@
         
         .header-actions {
             display: flex;
-            gap: 16px;
+            gap: 12px;
         }
         
         .header-btn {
@@ -73,6 +73,12 @@
             position: sticky;
             top: 60px;
             z-index: 90;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tab-bar::-webkit-scrollbar {
+            display: none;
         }
         
         .tab {
@@ -83,6 +89,7 @@
             position: relative;
             cursor: pointer;
             transition: color 0.2s;
+            white-space: nowrap;
         }
         
         .tab.active {
@@ -106,6 +113,32 @@
             padding-bottom: 80px;
         }
         
+        /* View Mode Controls */
+        .view-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+        
+        .view-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .view-btn.active {
+            background: #007aff;
+        }
+        
         /* Grid Views */
         .grid-view {
             display: grid;
@@ -113,28 +146,115 @@
             gap: 2px;
         }
         
+        .masonry-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 4px;
+            grid-auto-rows: 10px;
+        }
+        
+        .list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
         .grid-item {
             aspect-ratio: 1;
             overflow: hidden;
             position: relative;
             cursor: pointer;
-            border-radius: 2px;
+            border-radius: 4px;
             transition: transform 0.2s;
         }
         
-        .grid-item:active {
-            transform: scale(0.95);
+        .masonry-item {
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: transform 0.2s;
         }
         
-        .grid-item img {
+        .list-item {
+            display: flex;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .grid-item:active, .masonry-item:active, .list-item:active {
+            transform: scale(0.98);
+        }
+        
+        .grid-item img, .masonry-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s;
         }
         
-        .grid-item:hover img {
+        .list-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .list-item-info {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .list-item-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        
+        .list-item-details {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .grid-item:hover img, .masonry-item:hover img {
             transform: scale(1.05);
+        }
+        
+        .item-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            z-index: 2;
+        }
+        
+        .item-badge.favorite {
+            background: #ff375f;
+        }
+        
+        .item-badge.recent {
+            background: #34c759;
         }
         
         .folder-info {
@@ -161,44 +281,111 @@
             margin-top: 2px;
         }
         
-        /* Sort Menu */
-        .sort-menu {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1c1c1e;
-            border-radius: 16px 16px 0 0;
-            z-index: 1000;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            padding: 16px;
-            padding-bottom: 40px;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .sort-menu.show {
-            transform: translateY(0);
-        }
-        
-        .sort-header {
+        /* Loading */
+        .loading {
             text-align: center;
-            padding: 16px 0;
-            font-weight: 600;
-            position: relative;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+        
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ff375f;
+        }
+        
+        .error-state i {
+            font-size: 3rem;
             margin-bottom: 16px;
         }
         
-        .sort-close {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
+        .error-state p {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+        }
+        
+        .error-state button {
+            background: #007aff;
             color: #fff;
-            font-size: 1.2rem;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 0.8rem;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007aff;
+            color: #fff;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -206,67 +393,25 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            z-index: 1001;
         }
         
-        .sort-option {
-            padding: 16px;
-            border-radius: 10px;
+        .debug-title {
+            font-weight: 600;
             margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
         }
         
-        .sort-option:active {
-            background: rgba(255, 255, 255, 0.1);
+        .debug-info {
+            margin-bottom: 8px;
         }
         
-        .sort-option.active {
-            color: #007aff;
-        }
-        
-        .sort-direction {
-            display: flex;
-            gap: 16px;
-            margin-top: 16px;
-            padding: 0 16px;
-        }
-        
-        .direction-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #fff;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .direction-btn.active {
-            background: #007aff;
-        }
-        
-        /* Overlay */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        .overlay.show {
-            opacity: 1;
-            pointer-events: all;
+        .debug-url {
+            word-break: break-all;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-top: 8px;
         }
         
         /* Image Viewer */
@@ -291,9 +436,16 @@
             pointer-events: all;
         }
         
-        .viewer-image {
+        .viewer-image-container {
+            position: relative;
             max-width: 100%;
             max-height: 100%;
+            overflow: hidden;
+        }
+        
+        .viewer-image {
+            max-width: 100%;
+            max-height: 100vh;
             object-fit: contain;
             transform: scale(0.9);
             transition: transform 0.3s;
@@ -345,75 +497,73 @@
             cursor: pointer;
         }
         
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.6);
+        .viewer-tools {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
         }
         
-        .loading i {
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 2px;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
-        .empty-state p {
+        .viewer-tool {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.1rem;
+            cursor: pointer;
+        }
+        
+        .viewer-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 20px;
+            color: #fff;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+        
+        .viewer-info.show {
+            transform: translateY(0);
+        }
+        
+        .viewer-title {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .viewer-details {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .grid-view {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .masonry-view {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
         }
     </style>
 </head>
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>Gallery</h1>
+        <h1>Laxman Nepal's Gallery</h1>
         <div class="header-actions">
-            <button class="header-btn" id="search-btn">
-                <i class="fas fa-search"></i>
-            </button>
-            <button class="header-btn" id="sort-btn">
-                <i class="fas fa-sort"></i>
+            <button class="header-btn" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
             </button>
         </div>
     </div>
@@ -422,6 +572,20 @@
     <div class="tab-bar">
         <div class="tab active" data-tab="all">All Photos</div>
         <div class="tab" data-tab="folders">Folders</div>
+        <div class="tab" data-tab="favorites">Favorites</div>
+    </div>
+    
+    <!-- View Controls -->
+    <div class="view-controls">
+        <button class="view-btn active" data-view="grid" title="Grid View">
+            <i class="fas fa-th"></i>
+        </button>
+        <button class="view-btn" data-view="masonry" title="Masonry View">
+            <i class="fas fa-th-large"></i>
+        </button>
+        <button class="view-btn" data-view="list" title="List View">
+            <i class="fas fa-list"></i>
+        </button>
     </div>
     
     <!-- Content Area -->
@@ -435,43 +599,55 @@
         <div class="grid-view" id="folders-view" style="display: none;">
             <!-- Folders will be dynamically added here -->
         </div>
-    </div>
-    
-    <!-- Sort Menu -->
-    <div class="sort-menu" id="sort-menu">
-        <div class="sort-header">
-            Sort By
-            <button class="sort-close" id="sort-close">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="sort-option" data-sort="date">
-            <span>Date</span>
-            <i class="fas fa-check" style="display: none;"></i>
-        </div>
-        <div class="sort-option" data-sort="name">
-            <span>Name</span>
-            <i class="fas fa-check" style="display: none;"></i>
-        </div>
-        <div class="sort-option" data-sort="size">
-            <span>Size</span>
-            <i class="fas fa-check" style="display: none;"></i>
-        </div>
-        <div class="sort-direction">
-            <button class="direction-btn active" data-dir="desc">Descending</button>
-            <button class="direction-btn" data-dir="asc">Ascending</button>
+        
+        <!-- Favorites View -->
+        <div class="grid-view" id="favorites-view" style="display: none;">
+            <!-- Favorites will be dynamically added here -->
         </div>
     </div>
     
-    <!-- Overlay -->
-    <div class="overlay" id="overlay"></div>
+    <!-- Debug Toggle -->
+    <div class="debug-toggle" id="debug-toggle">
+        <i class="fas fa-bug"></i>
+    </div>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debug-panel">
+        <div class="debug-title">Debug Information</div>
+        <div class="debug-info" id="debug-status">Status: Loading...</div>
+        <div class="debug-info" id="debug-repo">Repository: LaxmanNepal/Laxman-Nepal-Photos</div>
+        <div class="debug-info" id="debug-items">Items found: 0</div>
+        <div class="debug-url" id="debug-url">API URL: </div>
+        <button id="debug-retry" style="margin-top: 10px; padding: 8px 12px; background: #007aff; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+    </div>
     
     <!-- Image Viewer -->
     <div class="image-viewer" id="image-viewer">
         <button class="viewer-close" id="viewer-close">
             <i class="fas fa-times"></i>
         </button>
-        <img class="viewer-image" id="viewer-image" src="" alt="">
+        
+        <div class="viewer-image-container" id="viewer-image-container">
+            <img class="viewer-image" id="viewer-image" src="" alt="">
+            
+            <div class="viewer-tools">
+                <button class="viewer-tool" id="viewer-favorite" title="Add to Favorites">
+                    <i class="far fa-heart"></i>
+                </button>
+                <button class="viewer-tool" id="viewer-info-btn" title="Image Info">
+                    <i class="fas fa-info"></i>
+                </button>
+                <button class="viewer-tool" id="viewer-download" title="Download">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+            
+            <div class="viewer-info" id="viewer-info">
+                <div class="viewer-title" id="viewer-title">Image Title</div>
+                <div class="viewer-details" id="viewer-details">January 1, 2023 • 2.5 MB</div>
+            </div>
+        </div>
+        
         <div class="viewer-nav">
             <button class="nav-btn" id="prev-btn">
                 <i class="fas fa-chevron-left"></i>
@@ -487,50 +663,47 @@
             // DOM elements
             const allView = document.getElementById('all-view');
             const foldersView = document.getElementById('folders-view');
+            const favoritesView = document.getElementById('favorites-view');
             const tabs = document.querySelectorAll('.tab');
-            const sortBtn = document.getElementById('sort-btn');
-            const sortMenu = document.getElementById('sort-menu');
-            const sortClose = document.getElementById('sort-close');
-            const overlay = document.getElementById('overlay');
-            const sortOptions = document.querySelectorAll('.sort-option');
-            const directionBtns = document.querySelectorAll('.direction-btn');
+            const viewBtns = document.querySelectorAll('.view-btn');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const debugToggle = document.getElementById('debug-toggle');
+            const debugPanel = document.getElementById('debug-panel');
+            const debugStatus = document.getElementById('debug-status');
+            const debugRepo = document.getElementById('debug-repo');
+            const debugItems = document.getElementById('debug-items');
+            const debugUrl = document.getElementById('debug-url');
+            const debugRetry = document.getElementById('debug-retry');
             const imageViewer = document.getElementById('image-viewer');
             const viewerImage = document.getElementById('viewer-image');
             const viewerClose = document.getElementById('viewer-close');
             const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
+            const viewerFavorite = document.getElementById('viewer-favorite');
+            const viewerInfoBtn = document.getElementById('viewer-info-btn');
+            const viewerInfo = document.getElementById('viewer-info');
+            const viewerDownload = document.getElementById('viewer-download');
             
             // State variables
             let folders = [];
             let allImages = [];
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
             let currentImages = [];
             let currentImageIndex = 0;
-            let currentSort = { by: 'date', dir: 'desc' };
+            let currentView = 'grid';
             
-            // GitHub repository information
-            const username = 'LaxmanNepal';
-            const repo = 'Laxman-Nepal-Photos';
-            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/`;
+            // GitHub configuration - automatically uses Laxman Nepal's repository
+            const githubConfig = {
+                username: 'LaxmanNepal',
+                repo: 'Laxman-Nepal-Photos',
+                path: ''
+            };
             
             // Initialize the app
             function init() {
                 showSkeletonLoading();
-                fetchFolders();
                 setupEventListeners();
-            }
-            
-            // Show skeleton loading UI
-            function showSkeletonLoading() {
-                allView.innerHTML = '';
-                foldersView.innerHTML = '';
-                
-                // Add skeleton items
-                for (let i = 0; i < 9; i++) {
-                    const skeletonElement = document.createElement('div');
-                    skeletonElement.className = 'grid-item skeleton';
-                    allView.appendChild(skeletonElement);
-                    foldersView.appendChild(skeletonElement.cloneNode(true));
-                }
+                checkRepository();
             }
             
             // Set up event listeners
@@ -543,31 +716,31 @@
                     });
                 });
                 
-                // Sort menu
-                sortBtn.addEventListener('click', showSortMenu);
-                sortClose.addEventListener('click', hideSortMenu);
-                overlay.addEventListener('click', hideSortMenu);
-                
-                // Sort options
-                sortOptions.forEach(option => {
-                    option.addEventListener('click', () => {
-                        const sortBy = option.getAttribute('data-sort');
-                        selectSortOption(sortBy);
-                    });
-                });
-                
-                // Direction buttons
-                directionBtns.forEach(btn => {
+                // View mode switching
+                viewBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
-                        const direction = btn.getAttribute('data-dir');
-                        selectDirection(direction);
+                        const viewMode = btn.getAttribute('data-view');
+                        switchViewMode(viewMode);
                     });
                 });
+                
+                // Refresh button
+                refreshBtn.addEventListener('click', checkRepository);
+                
+                // Debug panel
+                debugToggle.addEventListener('click', () => {
+                    debugPanel.style.display = debugPanel.style.display === 'block' ? 'none' : 'block';
+                });
+                
+                debugRetry.addEventListener('click', checkRepository);
                 
                 // Image viewer
                 viewerClose.addEventListener('click', closeImageViewer);
                 prevBtn.addEventListener('click', showPrevImage);
                 nextBtn.addEventListener('click', showNextImage);
+                viewerFavorite.addEventListener('click', toggleFavorite);
+                viewerInfoBtn.addEventListener('click', toggleViewerInfo);
+                viewerDownload.addEventListener('click', downloadImage);
                 
                 // Keyboard navigation
                 document.addEventListener('keydown', function(e) {
@@ -577,28 +750,262 @@
                         if (e.key === 'ArrowRight') showNextImage();
                     }
                 });
+            }
+            
+            // Check if repository exists and is accessible
+            async function checkRepository() {
+                showSkeletonLoading();
+                updateDebugInfo('Status: Checking repository access...', 'warning');
                 
-                // Swipe for image viewer
-                let touchStartX = 0;
-                let touchEndX = 0;
-                
-                viewerImage.addEventListener('touchstart', e => {
-                    touchStartX = e.changedTouches[0].screenX;
-                }, false);
-                
-                viewerImage.addEventListener('touchend', e => {
-                    touchEndX = e.changedTouches[0].screenX;
-                    handleSwipe();
-                }, false);
-                
-                function handleSwipe() {
-                    if (touchEndX < touchStartX - 50) {
-                        showNextImage();
+                try {
+                    const { username, repo } = githubConfig;
+                    const apiUrl = `https://api.github.com/repos/${username}/${repo}`;
+                    debugUrl.textContent = `API URL: ${apiUrl}`;
+                    
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error(`Repository "${username}/${repo}" not found. Please check the repository name.`);
+                        } else if (response.status === 403) {
+                            throw new Error('GitHub API rate limit exceeded. Please try again later.');
+                        } else {
+                            throw new Error(`Failed to access repository: ${response.status} ${response.statusText}`);
+                        }
                     }
-                    if (touchEndX > touchStartX + 50) {
-                        showPrevImage();
-                    }
+                    
+                    const repoData = await response.json();
+                    updateDebugInfo('Status: Repository found, loading contents...', 'success');
+                    
+                    // Repository exists, now try to load contents
+                    await loadFromGitHub();
+                    
+                } catch (error) {
+                    console.error('Error checking repository:', error);
+                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
+                    showErrorState(error.message);
                 }
+            }
+            
+            // Load images from GitHub
+            async function loadFromGitHub() {
+                showSkeletonLoading();
+                updateDebugInfo('Status: Loading content from GitHub...', 'loading');
+                
+                try {
+                    const { username, repo, path } = githubConfig;
+                    let apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/`;
+                    
+                    if (path) {
+                        apiUrl += path;
+                    }
+                    
+                    // Add cache busting parameter
+                    apiUrl += `?t=${new Date().getTime()}`;
+                    debugUrl.textContent = `API URL: ${apiUrl}`;
+                    
+                    const response = await fetch(apiUrl);
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('The repository exists but no content was found at the specified path.');
+                        } else if (response.status === 403) {
+                            throw new Error('API rate limit exceeded. Please try again later.');
+                        } else {
+                            throw new Error(`Failed to fetch repository contents: ${response.status} ${response.statusText}`);
+                        }
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Check if we have directories or files
+                    if (Array.isArray(data) && data.length > 0) {
+                        // Check if the first item is a directory (meaning we have folders)
+                        if (data[0].type === 'dir') {
+                            await loadFoldersFromGitHub(data);
+                        } else {
+                            // We have files at the root
+                            await loadImagesFromGitHub(data);
+                        }
+                    } else {
+                        throw new Error('The repository is empty or contains no visible content.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading from GitHub:', error);
+                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
+                    showErrorState(error.message);
+                }
+            }
+            
+            // Load folders from GitHub
+            async function loadFoldersFromGitHub(foldersData) {
+                updateDebugInfo('Status: Loading folders...', 'loading');
+                
+                try {
+                    // Filter out non-folder items and .github folder
+                    const folderItems = foldersData.filter(item => 
+                        item.type === 'dir' && item.name !== '.github'
+                    );
+                    
+                    if (folderItems.length === 0) {
+                        throw new Error('No folders found in the repository.');
+                    }
+                    
+                    debugItems.textContent = `Folders found: ${folderItems.length}`;
+                    
+                    // Load each folder's contents
+                    folders = [];
+                    
+                    for (const folderItem of folderItems) {
+                        try {
+                            const folderResponse = await fetch(folderItem.url);
+                            
+                            if (!folderResponse.ok) {
+                                console.error(`Failed to load folder: ${folderItem.name}`);
+                                continue;
+                            }
+                            
+                            const folderData = await folderResponse.json();
+                            
+                            // Filter image files in this folder
+                            const images = folderData
+                                .filter(item => item.type === 'file' && 
+                                    /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(item.name))
+                                .map(item => ({
+                                    id: item.sha,
+                                    url: item.download_url,
+                                    name: item.name,
+                                    size: item.size,
+                                    path: item.path,
+                                    folder: folderItem.name,
+                                    date: new Date(),
+                                    isFavorite: favorites.includes(item.sha)
+                                }));
+                            
+                            if (images.length > 0) {
+                                folders.push({
+                                    name: folderItem.name,
+                                    imageCount: images.length,
+                                    thumbnail: images[0].url,
+                                    images: images,
+                                    date: new Date()
+                                });
+                                
+                                // Add to all images
+                                allImages = allImages.concat(images);
+                            }
+                        } catch (error) {
+                            console.error(`Error processing folder ${folderItem.name}:`, error);
+                        }
+                    }
+                    
+                    if (folders.length === 0) {
+                        throw new Error('No images found in any folders.');
+                    }
+                    
+                    updateDebugInfo(`Status: Loaded ${folders.length} folders with ${allImages.length} images`, 'success');
+                    renderContent();
+                    
+                } catch (error) {
+                    console.error('Error loading folders:', error);
+                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
+                    showErrorState(error.message);
+                }
+            }
+            
+            // Load images directly from GitHub (no folders)
+            async function loadImagesFromGitHub(filesData) {
+                updateDebugInfo('Status: Loading images...', 'loading');
+                
+                try {
+                    // Filter image files
+                    const imageFiles = filesData.filter(item => 
+                        item.type === 'file' && 
+                        /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(item.name)
+                    );
+                    
+                    if (imageFiles.length === 0) {
+                        throw new Error('No images found in the repository.');
+                    }
+                    
+                    debugItems.textContent = `Images found: ${imageFiles.length}`;
+                    
+                    // Create image objects
+                    allImages = imageFiles.map(item => ({
+                        id: item.sha,
+                        url: item.download_url,
+                        name: item.name,
+                        size: item.size,
+                        path: item.path,
+                        date: new Date(),
+                        isFavorite: favorites.includes(item.sha)
+                    }));
+                    
+                    // Create a single folder for all images
+                    folders = [{
+                        name: 'All Images',
+                        imageCount: allImages.length,
+                        thumbnail: allImages[0]?.url || '',
+                        images: allImages,
+                        date: new Date()
+                    }];
+                    
+                    updateDebugInfo(`Status: Loaded ${allImages.length} images`, 'success');
+                    renderContent();
+                    
+                } catch (error) {
+                    console.error('Error loading images:', error);
+                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
+                    showErrorState(error.message);
+                }
+            }
+            
+            // Update debug information
+            function updateDebugInfo(message, status) {
+                debugStatus.textContent = message;
+                debugStatus.style.color = 
+                    status === 'error' ? '#ff375f' : 
+                    status === 'warning' ? '#ff9500' : 
+                    status === 'success' ? '#34c759' : '#fff';
+            }
+            
+            // Show skeleton loading UI
+            function showSkeletonLoading() {
+                allView.innerHTML = '';
+                foldersView.innerHTML = '';
+                favoritesView.innerHTML = '';
+                
+                // Add skeleton items
+                for (let i = 0; i < 9; i++) {
+                    const skeletonElement = document.createElement('div');
+                    skeletonElement.className = 'grid-item skeleton';
+                    allView.appendChild(skeletonElement);
+                    foldersView.appendChild(skeletonElement.cloneNode(true));
+                    favoritesView.appendChild(skeletonElement.cloneNode(true));
+                }
+            }
+            
+            // Show error state
+            function showErrorState(message) {
+                allView.innerHTML = '';
+                foldersView.innerHTML = '';
+                favoritesView.innerHTML = '';
+                
+                const errorElement = document.createElement('div');
+                errorElement.className = 'error-state';
+                errorElement.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${message}</p>
+                    <button id="retry-button">Retry</button>
+                `;
+                
+                allView.appendChild(errorElement);
+                
+                // Add retry button event listener
+                document.getElementById('retry-button').addEventListener('click', () => {
+                    checkRepository();
+                });
             }
             
             // Switch between tabs
@@ -611,209 +1018,54 @@
                     }
                 });
                 
+                // Hide all views
+                allView.style.display = 'none';
+                foldersView.style.display = 'none';
+                favoritesView.style.display = 'none';
+                
+                // Show selected view
                 if (tabName === 'all') {
-                    allView.style.display = 'grid';
-                    foldersView.style.display = 'none';
+                    allView.style.display = currentView === 'list' ? 'flex' : 'grid';
+                    renderAllImages();
                 } else if (tabName === 'folders') {
-                    allView.style.display = 'none';
-                    foldersView.style.display = 'grid';
+                    foldersView.style.display = currentView === 'list' ? 'flex' : 'grid';
+                    renderFolders();
+                } else if (tabName === 'favorites') {
+                    favoritesView.style.display = currentView === 'list' ? 'flex' : 'grid';
+                    renderFavorites();
                 }
             }
             
-            // Show sort menu
-            function showSortMenu() {
-                sortMenu.classList.add('show');
-                overlay.classList.add('show');
-            }
-            
-            // Hide sort menu
-            function hideSortMenu() {
-                sortMenu.classList.remove('show');
-                overlay.classList.remove('show');
-            }
-            
-            // Select sort option
-            function selectSortOption(sortBy) {
-                currentSort.by = sortBy;
+            // Switch view mode (grid, masonry, list)
+            function switchViewMode(mode) {
+                currentView = mode;
                 
-                // Update UI
-                sortOptions.forEach(option => {
-                    const optionSort = option.getAttribute('data-sort');
-                    if (optionSort === sortBy) {
-                        option.querySelector('i').style.display = 'block';
-                    } else {
-                        option.querySelector('i').style.display = 'none';
-                    }
-                });
-                
-                // Apply sorting
-                sortImages();
-                renderAllImages();
-                renderFolders();
-            }
-            
-            // Select sort direction
-            function selectDirection(direction) {
-                currentSort.dir = direction;
-                
-                // Update UI
-                directionBtns.forEach(btn => {
-                    const btnDirection = btn.getAttribute('data-dir');
-                    if (btnDirection === direction) {
+                // Update active button
+                viewBtns.forEach(btn => {
+                    if (btn.getAttribute('data-view') === mode) {
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');
                     }
                 });
                 
-                // Apply sorting
-                sortImages();
+                // Update view containers
+                const views = [allView, foldersView, favoritesView];
+                views.forEach(view => {
+                    if (view.style.display !== 'none') {
+                        view.className = mode + '-view';
+                    }
+                });
+                
+                // Re-render content
+                renderContent();
+            }
+            
+            // Render all content based on current view
+            function renderContent() {
                 renderAllImages();
                 renderFolders();
-            }
-            
-            // Sort images based on current sort method
-            function sortImages() {
-                allImages.sort((a, b) => {
-                    let valueA, valueB;
-                    
-                    if (currentSort.by === 'date') {
-                        valueA = a.date || new Date(0);
-                        valueB = b.date || new Date(0);
-                    } else if (currentSort.by === 'name') {
-                        valueA = a.name.toLowerCase();
-                        valueB = b.name.toLowerCase();
-                    } else if (currentSort.by === 'size') {
-                        valueA = a.size;
-                        valueB = b.size;
-                    }
-                    
-                    if (currentSort.dir === 'asc') {
-                        return valueA > valueB ? 1 : -1;
-                    } else {
-                        return valueA < valueB ? 1 : -1;
-                    }
-                });
-                
-                // Also sort folders
-                folders.sort((a, b) => {
-                    let valueA, valueB;
-                    
-                    if (currentSort.by === 'date') {
-                        valueA = a.date || new Date(0);
-                        valueB = b.date || new Date(0);
-                    } else if (currentSort.by === 'name') {
-                        valueA = a.name.toLowerCase();
-                        valueB = b.name.toLowerCase();
-                    } else if (currentSort.by === 'size') {
-                        valueA = a.images.reduce((sum, img) => sum + img.size, 0);
-                        valueB = b.images.reduce((sum, img) => sum + img.size, 0);
-                    }
-                    
-                    if (currentSort.dir === 'asc') {
-                        return valueA > valueB ? 1 : -1;
-                    } else {
-                        return valueA < valueB ? 1 : -1;
-                    }
-                });
-            }
-            
-            // Fetch folders from GitHub repository
-            async function fetchFolders() {
-                try {
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error('Failed to fetch repository contents');
-                    
-                    const data = await response.json();
-                    
-                    // Filter out non-folder items and .github folder
-                    const folderPromises = data
-                        .filter(item => item.type === 'dir' && item.name !== '.github')
-                        .map(async folder => {
-                            try {
-                                // Get folder contents to count images and get a thumbnail
-                                const folderResponse = await fetch(folder.url);
-                                if (!folderResponse.ok) throw new Error('Failed to fetch folder contents');
-                                
-                                const folderData = await folderResponse.json();
-                                
-                                // Filter image files
-                                const images = folderData
-                                    .filter(item => 
-                                        item.type === 'file' && 
-                                        /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(item.name)
-                                    )
-                                    .map(item => ({
-                                        url: item.download_url,
-                                        name: item.name,
-                                        size: item.size,
-                                        path: item.path
-                                    }));
-                                
-                                // Get date from the first image (approximation)
-                                let folderDate = new Date(0);
-                                if (images.length > 0) {
-                                    // Use the current date as a fallback
-                                    folderDate = new Date();
-                                }
-                                
-                                return {
-                                    name: folder.name,
-                                    imageCount: images.length,
-                                    thumbnail: images[0]?.url || 'https://via.placeholder.com/300/1a1a1a/666666?text=No+Images',
-                                    images: images,
-                                    date: folderDate
-                                };
-                            } catch (error) {
-                                console.error(`Error processing folder ${folder.name}:`, error);
-                                return {
-                                    name: folder.name,
-                                    imageCount: 0,
-                                    thumbnail: 'https://via.placeholder.com/300/1a1a1a/666666?text=Error',
-                                    images: [],
-                                    date: new Date(0)
-                                };
-                            }
-                        });
-                    
-                    folders = await Promise.all(folderPromises);
-                    
-                    // Collect all images for the "All Photos" view
-                    allImages = [];
-                    folders.forEach(folder => {
-                        folder.images.forEach(image => {
-                            allImages.push({
-                                ...image,
-                                folder: folder.name,
-                                date: folder.date
-                            });
-                        });
-                    });
-                    
-                    // Sort and render
-                    sortImages();
-                    renderAllImages();
-                    renderFolders();
-                } catch (error) {
-                    console.error('Error fetching repository:', error);
-                    showErrorState();
-                }
-            }
-            
-            // Show error state
-            function showErrorState() {
-                allView.innerHTML = '';
-                foldersView.innerHTML = '';
-                
-                const errorElement = document.createElement('div');
-                errorElement.className = 'empty-state';
-                errorElement.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Failed to load content. Please try again later.</p>
-                `;
-                
-                allView.appendChild(errorElement);
-                foldersView.appendChild(errorElement.cloneNode(true));
+                renderFavorites();
             }
             
             // Render all images
@@ -832,16 +1084,7 @@
                 }
                 
                 allImages.forEach((image, index) => {
-                    const imageElement = document.createElement('div');
-                    imageElement.className = 'grid-item fade-in';
-                    imageElement.innerHTML = `
-                        <img src="${image.url}" alt="${image.name}" loading="lazy">
-                    `;
-                    
-                    imageElement.addEventListener('click', () => {
-                        openImageViewer(index, allImages);
-                    });
-                    
+                    const imageElement = createImageElement(image, index, allImages);
                     allView.appendChild(imageElement);
                 });
             }
@@ -862,8 +1105,6 @@
                 }
                 
                 folders.forEach((folder, index) => {
-                    if (folder.name === '.github') return; // Skip .github folder
-                    
                     const folderElement = document.createElement('div');
                     folderElement.className = 'grid-item fade-in';
                     folderElement.innerHTML = `
@@ -880,6 +1121,71 @@
                     
                     foldersView.appendChild(folderElement);
                 });
+            }
+            
+            // Render favorites
+            function renderFavorites() {
+                favoritesView.innerHTML = '';
+                
+                const favoriteImages = allImages.filter(img => img.isFavorite);
+                
+                if (favoriteImages.length === 0) {
+                    const emptyElement = document.createElement('div');
+                    emptyElement.className = 'empty-state';
+                    emptyElement.innerHTML = `
+                        <i class="fas fa-heart"></i>
+                        <p>No favorites yet</p>
+                    `;
+                    favoritesView.appendChild(emptyElement);
+                    return;
+                }
+                
+                favoriteImages.forEach((image, index) => {
+                    const imageElement = createImageElement(image, index, favoriteImages);
+                    favoritesView.appendChild(imageElement);
+                });
+            }
+            
+            // Create image element based on current view mode
+            function createImageElement(image, index, imagesArray) {
+                let element;
+                
+                if (currentView === 'list') {
+                    element = document.createElement('div');
+                    element.className = 'list-item fade-in';
+                    element.innerHTML = `
+                        <img src="${image.url}" alt="${image.name}" loading="lazy">
+                        <div class="list-item-info">
+                            <div class="list-item-title">${image.name}</div>
+                            <div class="list-item-details">${formatDate(image.date)} • ${formatFileSize(image.size)}</div>
+                        </div>
+                        <div class="item-badge ${image.isFavorite ? 'favorite' : ''}">
+                            <i class="${image.isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </div>
+                    `;
+                } else {
+                    element = document.createElement('div');
+                    element.className = currentView === 'masonry' ? 'masonry-item fade-in' : 'grid-item fade-in';
+                    
+                    // Random height for masonry view
+                    if (currentView === 'masonry') {
+                        const height = 150 + Math.floor(Math.random() * 150);
+                        element.style.gridRowEnd = `span ${Math.floor(height / 10)}`;
+                    }
+                    
+                    element.innerHTML = `
+                        <img src="${image.url}" alt="${image.name}" loading="lazy">
+                        <div class="item-badge ${image.isFavorite ? 'favorite' : ''}">
+                            <i class="${image.isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </div>
+                    `;
+                }
+                
+                element.addEventListener('click', () => {
+                    openImageViewer(index, imagesArray);
+                });
+                
+                return element;
             }
             
             // Open folder view
@@ -902,16 +1208,7 @@
                 }
                 
                 currentImages.forEach((image, index) => {
-                    const imageElement = document.createElement('div');
-                    imageElement.className = 'grid-item fade-in';
-                    imageElement.innerHTML = `
-                        <img src="${image.url}" alt="${image.name}" loading="lazy">
-                    `;
-                    
-                    imageElement.addEventListener('click', () => {
-                        openImageViewer(index, currentImages);
-                    });
-                    
+                    const imageElement = createImageElement(image, index, currentImages);
                     allView.appendChild(imageElement);
                 });
                 
@@ -926,7 +1223,16 @@
             function openImageViewer(index, images) {
                 currentImages = images;
                 currentImageIndex = index;
-                viewerImage.src = currentImages[currentImageIndex].url;
+                const image = currentImages[currentImageIndex];
+                
+                viewerImage.src = image.url;
+                document.getElementById('viewer-title').textContent = image.name;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                
+                // Update favorite button
+                const favoriteIcon = viewerFavorite.querySelector('i');
+                favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
+                
                 imageViewer.classList.add('show');
                 
                 // Prevent body scrolling
@@ -944,13 +1250,93 @@
             // Show next image
             function showNextImage() {
                 currentImageIndex = (currentImageIndex + 1) % currentImages.length;
-                viewerImage.src = currentImages[currentImageIndex].url;
+                const image = currentImages[currentImageIndex];
+                
+                viewerImage.src = image.url;
+                document.getElementById('viewer-title').textContent = image.name;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                
+                // Update favorite button
+                const favoriteIcon = viewerFavorite.querySelector('i');
+                favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
             }
             
             // Show previous image
             function showPrevImage() {
                 currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
-                viewerImage.src = currentImages[currentImageIndex].url;
+                const image = currentImages[currentImageIndex];
+                
+                viewerImage.src = image.url;
+                document.getElementById('viewer-title').textContent = image.name;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                
+                // Update favorite button
+                const favoriteIcon = viewerFavorite.querySelector('i');
+                favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
+            }
+            
+            // Toggle favorite
+            function toggleFavorite() {
+                const image = currentImages[currentImageIndex];
+                image.isFavorite = !image.isFavorite;
+                
+                // Update favorite button
+                const favoriteIcon = viewerFavorite.querySelector('i');
+                favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
+                
+                // Update favorites list
+                if (image.isFavorite) {
+                    if (!favorites.includes(image.id)) {
+                        favorites.push(image.id);
+                    }
+                } else {
+                    const index = favorites.indexOf(image.id);
+                    if (index > -1) {
+                        favorites.splice(index, 1);
+                    }
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                
+                // Update the current view if we're in favorites
+                if (document.querySelector('.tab.active').getAttribute('data-tab') === 'favorites') {
+                    renderFavorites();
+                }
+            }
+            
+            // Toggle viewer info
+            function toggleViewerInfo() {
+                viewerInfo.classList.toggle('show');
+            }
+            
+            // Download image
+            function downloadImage() {
+                const image = currentImages[currentImageIndex];
+                
+                // Create a temporary anchor element
+                const a = document.createElement('a');
+                a.href = image.url;
+                a.download = image.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
+            // Format date
+            function formatDate(date) {
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            }
+            
+            // Format file size
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(1) + ' MB';
             }
             
             // Initialize the app
