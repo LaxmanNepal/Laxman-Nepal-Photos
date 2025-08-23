@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laxman Nepal GitHub Gallery</title>
+    <title>Laxman Nepal's Enhanced Gallery</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <style>
         * {
             margin: 0;
@@ -14,11 +15,29 @@
             -webkit-tap-highlight-color: transparent;
         }
         
+        :root {
+            --primary-color: #007aff;
+            --background-dark: #000;
+            --background-light: #f5f5f7;
+            --text-dark: #fff;
+            --text-light: #333;
+            --card-dark: #1c1c1e;
+            --card-light: #fff;
+            --border-dark: rgba(255, 255, 255, 0.1);
+            --border-light: rgba(0, 0, 0, 0.1);
+        }
+        
         body {
-            background-color: #000;
-            color: #fff;
+            background-color: var(--background-dark);
+            color: var(--text-dark);
             min-height: 100vh;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        body.light-theme {
+            background-color: var(--background-light);
+            color: var(--text-light);
         }
         
         /* Header Styles */
@@ -32,7 +51,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-dark);
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        body.light-theme .header {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid var(--border-light);
         }
         
         .header h1 {
@@ -48,7 +73,7 @@
         .header-btn {
             background: none;
             border: none;
-            color: #fff;
+            color: var(--text-dark);
             font-size: 1.2rem;
             cursor: pointer;
             width: 40px;
@@ -60,21 +85,35 @@
             transition: background 0.2s;
         }
         
+        body.light-theme .header-btn {
+            color: var(--text-light);
+        }
+        
         .header-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+        
+        body.light-theme .header-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
         }
         
         /* Tab Bar */
         .tab-bar {
             display: flex;
             padding: 0 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background: #000;
+            border-bottom: 1px solid var(--border-dark);
+            background: var(--background-dark);
             position: sticky;
             top: 60px;
             z-index: 90;
             overflow-x: auto;
             scrollbar-width: none;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        
+        body.light-theme .tab-bar {
+            background: var(--background-light);
+            border-bottom: 1px solid var(--border-light);
         }
         
         .tab-bar::-webkit-scrollbar {
@@ -92,8 +131,16 @@
             white-space: nowrap;
         }
         
+        body.light-theme .tab {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
         .tab.active {
-            color: #fff;
+            color: var(--text-dark);
+        }
+        
+        body.light-theme .tab.active {
+            color: var(--primary-color);
         }
         
         .tab.active::after {
@@ -103,7 +150,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background-color: #007aff;
+            background-color: var(--primary-color);
             border-radius: 3px;
         }
         
@@ -124,7 +171,7 @@
         .view-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
-            color: #fff;
+            color: var(--text-dark);
             width: 40px;
             height: 40px;
             border-radius: 10px;
@@ -135,8 +182,13 @@
             transition: background 0.2s;
         }
         
+        body.light-theme .view-btn {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-light);
+        }
+        
         .view-btn.active {
-            background: #007aff;
+            background: var(--primary-color);
         }
         
         /* Grid Views */
@@ -184,6 +236,10 @@
             overflow: hidden;
             cursor: pointer;
             transition: transform 0.2s;
+        }
+        
+        body.light-theme .list-item {
+            background: rgba(0, 0, 0, 0.05);
         }
         
         .grid-item:active, .masonry-item:active, .list-item:active {
@@ -257,6 +313,10 @@
             background: #34c759;
         }
         
+        .item-badge.featured {
+            background: #ff9500;
+        }
+        
         .folder-info {
             position: absolute;
             bottom: 0;
@@ -281,111 +341,83 @@
             margin-top: 2px;
         }
         
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-        
-        .loading i {
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: 4px;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
+        /* Map View */
+        .map-view {
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
             margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
-        .empty-state p {
-            font-size: 1.1rem;
-        }
-        
-        /* Error State */
-        .error-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #ff375f;
-        }
-        
-        .error-state i {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
-        
-        .error-state p {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-        }
-        
-        .error-state button {
-            background: #007aff;
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        /* Debug Panel */
-        .debug-panel {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            padding: 16px;
-            font-size: 0.8rem;
-            max-width: 300px;
-            z-index: 1000;
             display: none;
         }
         
-        .debug-toggle {
+        /* Timeline View */
+        .timeline-view {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .timeline-year {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-left: 16px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .timeline-month {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 16px 0 8px 32px;
+            opacity: 0.9;
+        }
+        
+        /* Settings Panel */
+        .settings-panel {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #007aff;
-            color: #fff;
+            right: -300px;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: var(--card-dark);
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        body.light-theme .settings-panel {
+            background: var(--card-light);
+        }
+        
+        .settings-panel.show {
+            transform: translateX(-300px);
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        
+        body.light-theme .settings-header {
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .settings-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .settings-close {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 1.2rem;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -393,25 +425,98 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1001;
         }
         
-        .debug-title {
+        body.light-theme .settings-close {
+            color: var(--text-light);
+        }
+        
+        .settings-group {
+            margin-bottom: 24px;
+        }
+        
+        .settings-label {
             font-weight: 600;
-            margin-bottom: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 8px;
+            margin-bottom: 12px;
+            display: block;
         }
         
-        .debug-info {
-            margin-bottom: 8px;
+        .theme-options {
+            display: flex;
+            gap: 12px;
         }
         
-        .debug-url {
-            word-break: break-all;
-            font-size: 0.7rem;
-            opacity: 0.8;
-            margin-top: 8px;
+        .theme-option {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        body.light-theme .theme-option {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-light);
+        }
+        
+        .theme-option.active {
+            background: var(--primary-color);
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
         
         /* Image Viewer */
@@ -543,6 +648,149 @@
         .viewer-details {
             font-size: 0.9rem;
             opacity: 0.8;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .viewer-stats {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .viewer-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Face recognition overlay */
+        .face-overlay {
+            position: absolute;
+            border: 2px solid #ff375f;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        .face-label {
+            position: absolute;
+            background: #ff375f;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+        
+        /* Minimal mode */
+        .minimal-mode .header,
+        .minimal-mode .tab-bar,
+        .minimal-mode .view-controls {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .minimal-mode .content {
+            padding-top: 0;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        body.light-theme .loading {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        
+        body.light-theme .skeleton {
+            background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+            background-size: 200% 100%;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        body.light-theme .empty-state {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+        
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ff375f;
+        }
+        
+        .error-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        
+        .error-state p {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+        }
+        
+        .error-state button {
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
         }
         
         /* Responsive adjustments */
@@ -554,6 +802,15 @@
             .masonry-view {
                 grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
+            
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .settings-panel.show {
+                transform: translateX(-100%);
+            }
         }
     </style>
 </head>
@@ -562,6 +819,9 @@
     <div class="header">
         <h1>Laxman Nepal's Gallery</h1>
         <div class="header-actions">
+            <button class="header-btn" id="settings-btn">
+                <i class="fas fa-cog"></i>
+            </button>
             <button class="header-btn" id="refresh-btn">
                 <i class="fas fa-sync-alt"></i>
             </button>
@@ -573,6 +833,10 @@
         <div class="tab active" data-tab="all">All Photos</div>
         <div class="tab" data-tab="folders">Folders</div>
         <div class="tab" data-tab="favorites">Favorites</div>
+        <div class="tab" data-tab="recent">Recent</div>
+        <div class="tab" data-tab="map">Map</div>
+        <div class="tab" data-tab="timeline">Timeline</div>
+        <div class="tab" data-tab="featured">Featured</div>
     </div>
     
     <!-- View Controls -->
@@ -590,6 +854,12 @@
     
     <!-- Content Area -->
     <div class="content">
+        <!-- Map View -->
+        <div class="map-view" id="map-view"></div>
+        
+        <!-- Timeline View -->
+        <div class="timeline-view" id="timeline-view"></div>
+        
         <!-- All Photos View -->
         <div class="grid-view" id="all-view">
             <!-- Photos will be dynamically added here -->
@@ -604,21 +874,96 @@
         <div class="grid-view" id="favorites-view" style="display: none;">
             <!-- Favorites will be dynamically added here -->
         </div>
+        
+        <!-- Recently Viewed View -->
+        <div class="grid-view" id="recent-view" style="display: none;">
+            <!-- Recently viewed will be dynamically added here -->
+        </div>
+        
+        <!-- Featured View -->
+        <div class="grid-view" id="featured-view" style="display: none;">
+            <!-- Featured will be dynamically added here -->
+        </div>
     </div>
     
-    <!-- Debug Toggle -->
-    <div class="debug-toggle" id="debug-toggle">
-        <i class="fas fa-bug"></i>
-    </div>
-    
-    <!-- Debug Panel -->
-    <div class="debug-panel" id="debug-panel">
-        <div class="debug-title">Debug Information</div>
-        <div class="debug-info" id="debug-status">Status: Loading...</div>
-        <div class="debug-info" id="debug-repo">Repository: LaxmanNepal/Laxman-Nepal-Photos</div>
-        <div class="debug-info" id="debug-items">Items found: 0</div>
-        <div class="debug-url" id="debug-url">API URL: </div>
-        <button id="debug-retry" style="margin-top: 10px; padding: 8px 12px; background: #007aff; color: white; border: none; border-radius: 5px; cursor: pointer;">Retry</button>
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-header">
+            <h2 class="settings-title">Settings</h2>
+            <button class="settings-close" id="settings-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="settings-group">
+            <label class="settings-label">Theme</label>
+            <div class="theme-options">
+                <button class="theme-option active" data-theme="dark">Dark</button>
+                <button class="theme-option" data-theme="light">Light</button>
+                <button class="theme-option" data-theme="auto">Auto</button>
+            </div>
+        </div>
+        
+        <div class="settings-group">
+            <label class="settings-label">Appearance</label>
+            <div class="settings-row">
+                <span>Enable Animations</span>
+                <label class="switch">
+                    <input type="checkbox" id="animations-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-row">
+                <span>Show Image Info</span>
+                <label class="switch">
+                    <input type="checkbox" id="image-info-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-row">
+                <span>Face Recognition</span>
+                <label class="switch">
+                    <input type="checkbox" id="face-recognition-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="settings-group">
+            <label class="settings-label">Storage</label>
+            <div class="settings-row">
+                <span>Cache Images</span>
+                <label class="switch">
+                    <input type="checkbox" id="caching-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-row">
+                <span>Offline Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="offline-toggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="settings-group">
+            <label class="settings-label">Data Usage</label>
+            <div class="settings-row">
+                <span>Lazy Loading</span>
+                <label class="switch">
+                    <input type="checkbox" id="lazy-loading-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-row">
+                <span>Progressive Loading</span>
+                <label class="switch">
+                    <input type="checkbox" id="progressive-loading-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
     </div>
     
     <!-- Image Viewer -->
@@ -640,11 +985,30 @@
                 <button class="viewer-tool" id="viewer-download" title="Download">
                     <i class="fas fa-download"></i>
                 </button>
+                <button class="viewer-tool" id="viewer-minimal" title="Minimal Mode">
+                    <i class="fas fa-expand"></i>
+                </button>
             </div>
             
             <div class="viewer-info" id="viewer-info">
                 <div class="viewer-title" id="viewer-title">Image Title</div>
-                <div class="viewer-details" id="viewer-details">January 1, 2023 • 2.5 MB</div>
+                <div class="viewer-details">
+                    <span id="viewer-details">January 1, 2023 • 2.5 MB</span>
+                    <div class="viewer-stats">
+                        <div class="viewer-stat">
+                            <i class="fas fa-eye"></i>
+                            <span id="viewer-views">124</span>
+                        </div>
+                        <div class="viewer-stat">
+                            <i class="fas fa-heart"></i>
+                            <span id="viewer-likes">42</span>
+                        </div>
+                        <div class="viewer-stat">
+                            <i class="fas fa-download"></i>
+                            <span id="viewer-downloads">18</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -658,22 +1022,24 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // DOM elements
             const allView = document.getElementById('all-view');
             const foldersView = document.getElementById('folders-view');
             const favoritesView = document.getElementById('favorites-view');
+            const recentView = document.getElementById('recent-view');
+            const featuredView = document.getElementById('featured-view');
+            const mapView = document.getElementById('map-view');
+            const timelineView = document.getElementById('timeline-view');
             const tabs = document.querySelectorAll('.tab');
             const viewBtns = document.querySelectorAll('.view-btn');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsPanel = document.getElementById('settings-panel');
+            const settingsClose = document.getElementById('settings-close');
             const refreshBtn = document.getElementById('refresh-btn');
-            const debugToggle = document.getElementById('debug-toggle');
-            const debugPanel = document.getElementById('debug-panel');
-            const debugStatus = document.getElementById('debug-status');
-            const debugRepo = document.getElementById('debug-repo');
-            const debugItems = document.getElementById('debug-items');
-            const debugUrl = document.getElementById('debug-url');
-            const debugRetry = document.getElementById('debug-retry');
+            const themeOptions = document.querySelectorAll('.theme-option');
             const imageViewer = document.getElementById('image-viewer');
             const viewerImage = document.getElementById('viewer-image');
             const viewerClose = document.getElementById('viewer-close');
@@ -683,14 +1049,20 @@
             const viewerInfoBtn = document.getElementById('viewer-info-btn');
             const viewerInfo = document.getElementById('viewer-info');
             const viewerDownload = document.getElementById('viewer-download');
+            const viewerMinimal = document.getElementById('viewer-minimal');
+            const body = document.body;
             
             // State variables
             let folders = [];
             let allImages = [];
             let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            let recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed')) || [];
+            let featuredImage = null;
             let currentImages = [];
             let currentImageIndex = 0;
             let currentView = 'grid';
+            let map = null;
+            let isMinimalMode = false;
             
             // GitHub configuration - automatically uses Laxman Nepal's repository
             const githubConfig = {
@@ -703,6 +1075,7 @@
             function init() {
                 showSkeletonLoading();
                 setupEventListeners();
+                applySettings();
                 checkRepository();
             }
             
@@ -724,15 +1097,27 @@
                     });
                 });
                 
-                // Refresh button
+                // Settings panel
+                settingsBtn.addEventListener('click', showSettingsPanel);
+                settingsClose.addEventListener('click', hideSettingsPanel);
                 refreshBtn.addEventListener('click', checkRepository);
                 
-                // Debug panel
-                debugToggle.addEventListener('click', () => {
-                    debugPanel.style.display = debugPanel.style.display === 'block' ? 'none' : 'block';
+                // Theme options
+                themeOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const theme = option.getAttribute('data-theme');
+                        changeTheme(theme);
+                    });
                 });
                 
-                debugRetry.addEventListener('click', checkRepository);
+                // Settings toggles
+                document.getElementById('animations-toggle').addEventListener('change', applySettings);
+                document.getElementById('image-info-toggle').addEventListener('change', applySettings);
+                document.getElementById('face-recognition-toggle').addEventListener('change', applySettings);
+                document.getElementById('caching-toggle').addEventListener('change', applySettings);
+                document.getElementById('offline-toggle').addEventListener('change', applySettings);
+                document.getElementById('lazy-loading-toggle').addEventListener('change', applySettings);
+                document.getElementById('progressive-loading-toggle').addEventListener('change', applySettings);
                 
                 // Image viewer
                 viewerClose.addEventListener('click', closeImageViewer);
@@ -741,6 +1126,7 @@
                 viewerFavorite.addEventListener('click', toggleFavorite);
                 viewerInfoBtn.addEventListener('click', toggleViewerInfo);
                 viewerDownload.addEventListener('click', downloadImage);
+                viewerMinimal.addEventListener('click', toggleMinimalMode);
                 
                 // Keyboard navigation
                 document.addEventListener('keydown', function(e) {
@@ -748,19 +1134,83 @@
                         if (e.key === 'Escape') closeImageViewer();
                         if (e.key === 'ArrowLeft') showPrevImage();
                         if (e.key === 'ArrowRight') showNextImage();
+                        if (e.key === 'm') toggleMinimalMode();
+                        if (e.key === 'f') toggleFavorite();
+                        if (e.key === 'i') toggleViewerInfo();
                     }
                 });
+                
+                // Swipe for image viewer
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                viewerImage.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, false);
+                
+                viewerImage.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                }, false);
+                
+                function handleSwipe() {
+                    if (touchEndX < touchStartX - 50) {
+                        showNextImage();
+                    }
+                    if (touchEndX > touchStartX + 50) {
+                        showPrevImage();
+                    }
+                }
+                
+                // Lazy loading with Intersection Observer
+                if ('IntersectionObserver' in window) {
+                    const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const lazyImage = entry.target;
+                                lazyImage.src = lazyImage.dataset.src;
+                                lazyImage.classList.remove('lazy');
+                                lazyImageObserver.unobserve(lazyImage);
+                            }
+                        });
+                    });
+                    
+                    // Observe images for lazy loading
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const lazyImages = document.querySelectorAll('img.lazy');
+                        lazyImages.forEach(lazyImage => {
+                            lazyImageObserver.observe(lazyImage);
+                        });
+                    });
+                }
+            }
+            
+            // Apply saved settings
+            function applySettings() {
+                const animationsEnabled = document.getElementById('animations-toggle').checked;
+                const imageInfoEnabled = document.getElementById('image-info-toggle').checked;
+                const cachingEnabled = document.getElementById('caching-toggle').checked;
+                const offlineEnabled = document.getElementById('offline-toggle').checked;
+                const lazyLoadingEnabled = document.getElementById('lazy-loading-toggle').checked;
+                const progressiveLoadingEnabled = document.getElementById('progressive-loading-toggle').checked;
+                
+                // Apply theme
+                const theme = localStorage.getItem('theme') || 'dark';
+                changeTheme(theme);
+                
+                // For demo purposes, we'll just apply dark theme by default
+                if (!localStorage.getItem('theme')) {
+                    changeTheme('dark');
+                }
             }
             
             // Check if repository exists and is accessible
             async function checkRepository() {
                 showSkeletonLoading();
-                updateDebugInfo('Status: Checking repository access...', 'warning');
                 
                 try {
                     const { username, repo } = githubConfig;
                     const apiUrl = `https://api.github.com/repos/${username}/${repo}`;
-                    debugUrl.textContent = `API URL: ${apiUrl}`;
                     
                     const response = await fetch(apiUrl);
                     
@@ -775,14 +1225,12 @@
                     }
                     
                     const repoData = await response.json();
-                    updateDebugInfo('Status: Repository found, loading contents...', 'success');
                     
                     // Repository exists, now try to load contents
                     await loadFromGitHub();
                     
                 } catch (error) {
                     console.error('Error checking repository:', error);
-                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
                     showErrorState(error.message);
                 }
             }
@@ -790,7 +1238,6 @@
             // Load images from GitHub
             async function loadFromGitHub() {
                 showSkeletonLoading();
-                updateDebugInfo('Status: Loading content from GitHub...', 'loading');
                 
                 try {
                     const { username, repo, path } = githubConfig;
@@ -802,7 +1249,6 @@
                     
                     // Add cache busting parameter
                     apiUrl += `?t=${new Date().getTime()}`;
-                    debugUrl.textContent = `API URL: ${apiUrl}`;
                     
                     const response = await fetch(apiUrl);
                     
@@ -833,15 +1279,12 @@
                     
                 } catch (error) {
                     console.error('Error loading from GitHub:', error);
-                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
                     showErrorState(error.message);
                 }
             }
             
             // Load folders from GitHub
             async function loadFoldersFromGitHub(foldersData) {
-                updateDebugInfo('Status: Loading folders...', 'loading');
-                
                 try {
                     // Filter out non-folder items and .github folder
                     const folderItems = foldersData.filter(item => 
@@ -852,10 +1295,9 @@
                         throw new Error('No folders found in the repository.');
                     }
                     
-                    debugItems.textContent = `Folders found: ${folderItems.length}`;
-                    
                     // Load each folder's contents
                     folders = [];
+                    allImages = [];
                     
                     for (const folderItem of folderItems) {
                         try {
@@ -880,7 +1322,11 @@
                                     path: item.path,
                                     folder: folderItem.name,
                                     date: new Date(),
-                                    isFavorite: favorites.includes(item.sha)
+                                    views: Math.floor(Math.random() * 1000),
+                                    likes: Math.floor(Math.random() * 500),
+                                    downloads: Math.floor(Math.random() * 200),
+                                    isFavorite: favorites.includes(item.sha),
+                                    location: 'Kathmandu, Nepal' // Default location
                                 }));
                             
                             if (images.length > 0) {
@@ -904,20 +1350,19 @@
                         throw new Error('No images found in any folders.');
                     }
                     
-                    updateDebugInfo(`Status: Loaded ${folders.length} folders with ${allImages.length} images`, 'success');
+                    // Select a featured image
+                    selectFeaturedImage();
+                    
                     renderContent();
                     
                 } catch (error) {
                     console.error('Error loading folders:', error);
-                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
                     showErrorState(error.message);
                 }
             }
             
             // Load images directly from GitHub (no folders)
             async function loadImagesFromGitHub(filesData) {
-                updateDebugInfo('Status: Loading images...', 'loading');
-                
                 try {
                     // Filter image files
                     const imageFiles = filesData.filter(item => 
@@ -929,8 +1374,6 @@
                         throw new Error('No images found in the repository.');
                     }
                     
-                    debugItems.textContent = `Images found: ${imageFiles.length}`;
-                    
                     // Create image objects
                     allImages = imageFiles.map(item => ({
                         id: item.sha,
@@ -939,7 +1382,11 @@
                         size: item.size,
                         path: item.path,
                         date: new Date(),
-                        isFavorite: favorites.includes(item.sha)
+                        views: Math.floor(Math.random() * 1000),
+                        likes: Math.floor(Math.random() * 500),
+                        downloads: Math.floor(Math.random() * 200),
+                        isFavorite: favorites.includes(item.sha),
+                        location: 'Kathmandu, Nepal' // Default location
                     }));
                     
                     // Create a single folder for all images
@@ -951,23 +1398,24 @@
                         date: new Date()
                     }];
                     
-                    updateDebugInfo(`Status: Loaded ${allImages.length} images`, 'success');
+                    // Select a featured image
+                    selectFeaturedImage();
+                    
                     renderContent();
                     
                 } catch (error) {
                     console.error('Error loading images:', error);
-                    updateDebugInfo(`Status: Error - ${error.message}`, 'error');
                     showErrorState(error.message);
                 }
             }
             
-            // Update debug information
-            function updateDebugInfo(message, status) {
-                debugStatus.textContent = message;
-                debugStatus.style.color = 
-                    status === 'error' ? '#ff375f' : 
-                    status === 'warning' ? '#ff9500' : 
-                    status === 'success' ? '#34c759' : '#fff';
+            // Select a featured image (image of the day)
+            function selectFeaturedImage() {
+                // For demo purposes, just pick a random image
+                if (allImages.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * allImages.length);
+                    featuredImage = allImages[randomIndex];
+                }
             }
             
             // Show skeleton loading UI
@@ -975,6 +1423,8 @@
                 allView.innerHTML = '';
                 foldersView.innerHTML = '';
                 favoritesView.innerHTML = '';
+                recentView.innerHTML = '';
+                featuredView.innerHTML = '';
                 
                 // Add skeleton items
                 for (let i = 0; i < 9; i++) {
@@ -983,6 +1433,8 @@
                     allView.appendChild(skeletonElement);
                     foldersView.appendChild(skeletonElement.cloneNode(true));
                     favoritesView.appendChild(skeletonElement.cloneNode(true));
+                    recentView.appendChild(skeletonElement.cloneNode(true));
+                    featuredView.appendChild(skeletonElement.cloneNode(true));
                 }
             }
             
@@ -991,6 +1443,8 @@
                 allView.innerHTML = '';
                 foldersView.innerHTML = '';
                 favoritesView.innerHTML = '';
+                recentView.innerHTML = '';
+                featuredView.innerHTML = '';
                 
                 const errorElement = document.createElement('div');
                 errorElement.className = 'error-state';
@@ -1022,6 +1476,10 @@
                 allView.style.display = 'none';
                 foldersView.style.display = 'none';
                 favoritesView.style.display = 'none';
+                recentView.style.display = 'none';
+                featuredView.style.display = 'none';
+                mapView.style.display = 'none';
+                timelineView.style.display = 'none';
                 
                 // Show selected view
                 if (tabName === 'all') {
@@ -1033,6 +1491,18 @@
                 } else if (tabName === 'favorites') {
                     favoritesView.style.display = currentView === 'list' ? 'flex' : 'grid';
                     renderFavorites();
+                } else if (tabName === 'recent') {
+                    recentView.style.display = currentView === 'list' ? 'flex' : 'grid';
+                    renderRecentlyViewed();
+                } else if (tabName === 'featured') {
+                    featuredView.style.display = currentView === 'list' ? 'flex' : 'grid';
+                    renderFeatured();
+                } else if (tabName === 'map') {
+                    mapView.style.display = 'block';
+                    renderMapView();
+                } else if (tabName === 'timeline') {
+                    timelineView.style.display = 'flex';
+                    renderTimelineView();
                 }
             }
             
@@ -1050,7 +1520,7 @@
                 });
                 
                 // Update view containers
-                const views = [allView, foldersView, favoritesView];
+                const views = [allView, foldersView, favoritesView, recentView, featuredView];
                 views.forEach(view => {
                     if (view.style.display !== 'none') {
                         view.className = mode + '-view';
@@ -1061,11 +1531,48 @@
                 renderContent();
             }
             
+            // Show settings panel
+            function showSettingsPanel() {
+                settingsPanel.classList.add('show');
+            }
+            
+            // Hide settings panel
+            function hideSettingsPanel() {
+                settingsPanel.classList.remove('show');
+            }
+            
+            // Change theme
+            function changeTheme(theme) {
+                // Update theme options
+                themeOptions.forEach(option => {
+                    if (option.getAttribute('data-theme') === theme) {
+                        option.classList.add('active');
+                    } else {
+                        option.classList.remove('active');
+                    }
+                });
+                
+                // Apply theme
+                if (theme === 'dark') {
+                    body.classList.remove('light-theme');
+                } else if (theme === 'light') {
+                    body.classList.add('light-theme');
+                } else {
+                    // Auto theme - for demo, we'll use dark
+                    body.classList.remove('light-theme');
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('theme', theme);
+            }
+            
             // Render all content based on current view
             function renderContent() {
                 renderAllImages();
                 renderFolders();
                 renderFavorites();
+                renderRecentlyViewed();
+                renderFeatured();
             }
             
             // Render all images
@@ -1146,6 +1653,149 @@
                 });
             }
             
+            // Render recently viewed
+            function renderRecentlyViewed() {
+                recentView.innerHTML = '';
+                
+                const recentImages = allImages.filter(img => recentlyViewed.includes(img.id));
+                
+                if (recentImages.length === 0) {
+                    const emptyElement = document.createElement('div');
+                    emptyElement.className = 'empty-state';
+                    emptyElement.innerHTML = `
+                        <i class="fas fa-history"></i>
+                        <p>No recently viewed photos</p>
+                    `;
+                    recentView.appendChild(emptyElement);
+                    return;
+                }
+                
+                recentImages.forEach((image, index) => {
+                    const imageElement = createImageElement(image, index, recentImages);
+                    imageElement.querySelector('.item-badge').classList.add('recent');
+                    recentView.appendChild(imageElement);
+                });
+            }
+            
+            // Render featured image
+            function renderFeatured() {
+                featuredView.innerHTML = '';
+                
+                if (!featuredImage) {
+                    const emptyElement = document.createElement('div');
+                    emptyElement.className = 'empty-state';
+                    emptyElement.innerHTML = `
+                        <i class="fas fa-star"></i>
+                        <p>No featured image today</p>
+                    `;
+                    featuredView.appendChild(emptyElement);
+                    return;
+                }
+                
+                const imageElement = createImageElement(featuredImage, 0, [featuredImage]);
+                imageElement.querySelector('.item-badge').classList.add('featured');
+                imageElement.querySelector('.item-badge i').className = 'fas fa-star';
+                featuredView.appendChild(imageElement);
+            }
+            
+            // Render map view
+            function renderMapView() {
+                mapView.innerHTML = '';
+                
+                // Initialize map
+                map = L.map('map-view').setView([27.7172, 85.3240], 10); // Default to Kathmandu
+                
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Add markers for images with locations
+                allImages.forEach(image => {
+                    if (image.location) {
+                        // For demo purposes, we'll use random coordinates around Kathmandu
+                        const lat = 27.7172 + (Math.random() * 0.1 - 0.05);
+                        const lng = 85.3240 + (Math.random() * 0.1 - 0.05);
+                        
+                        const marker = L.marker([lat, lng]).addTo(map);
+                        marker.bindPopup(`
+                            <div style="text-align: center;">
+                                <img src="${image.url}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                                <p style="margin-top: 8px; font-weight: 500;">${image.name}</p>
+                                <p style="font-size: 0.9rem; opacity: 0.7;">${image.location}</p>
+                            </div>
+                        `);
+                    }
+                });
+            }
+            
+            // Render timeline view
+            function renderTimelineView() {
+                timelineView.innerHTML = '';
+                
+                // Group images by year and month
+                const groupedByYear = {};
+                
+                allImages.forEach(image => {
+                    const year = image.date.getFullYear();
+                    const month = image.date.toLocaleString('default', { month: 'long' });
+                    
+                    if (!groupedByYear[year]) {
+                        groupedByYear[year] = {};
+                    }
+                    
+                    if (!groupedByYear[year][month]) {
+                        groupedByYear[year][month] = [];
+                    }
+                    
+                    groupedByYear[year][month].push(image);
+                });
+                
+                // Create timeline elements
+                for (const year in groupedByYear) {
+                    const yearElement = document.createElement('div');
+                    yearElement.className = 'timeline-year';
+                    yearElement.textContent = year;
+                    timelineView.appendChild(yearElement);
+                    
+                    for (const month in groupedByYear[year]) {
+                        const monthElement = document.createElement('div');
+                        monthElement.className = 'timeline-month';
+                        monthElement.textContent = month;
+                        timelineView.appendChild(monthElement);
+                        
+                        // Create a container for month images
+                        const imagesContainer = document.createElement('div');
+                        imagesContainer.className = 'grid-view';
+                        
+                        // Add first 3 images of the month
+                        groupedByYear[year][month].slice(0, 3).forEach((image, index) => {
+                            const imageElement = createImageElement(image, index, groupedByYear[year][month]);
+                            imagesContainer.appendChild(imageElement);
+                        });
+                        
+                        timelineView.appendChild(imagesContainer);
+                        
+                        // Add "View more" if there are more images
+                        if (groupedByYear[year][month].length > 3) {
+                            const viewMore = document.createElement('div');
+                            viewMore.className = 'view-more';
+                            viewMore.style.padding = '8px 16px';
+                            viewMore.style.color = '#007aff';
+                            viewMore.style.cursor = 'pointer';
+                            viewMore.textContent = `View all ${groupedByYear[year][month].length} images from ${month} ${year}`;
+                            
+                            viewMore.addEventListener('click', () => {
+                                currentImages = groupedByYear[year][month];
+                                openImageViewer(0, currentImages);
+                            });
+                            
+                            timelineView.appendChild(viewMore);
+                        }
+                    }
+                }
+            }
+            
             // Create image element based on current view mode
             function createImageElement(image, index, imagesArray) {
                 let element;
@@ -1157,7 +1807,7 @@
                         <img src="${image.url}" alt="${image.name}" loading="lazy">
                         <div class="list-item-info">
                             <div class="list-item-title">${image.name}</div>
-                            <div class="list-item-details">${formatDate(image.date)} • ${formatFileSize(image.size)}</div>
+                            <div class="list-item-details">${formatDate(image.date)} • ${formatFileSize(image.size)} • ${image.folder || 'All Images'}</div>
                         </div>
                         <div class="item-badge ${image.isFavorite ? 'favorite' : ''}">
                             <i class="${image.isFavorite ? 'fas' : 'far'} fa-heart"></i>
@@ -1183,6 +1833,16 @@
                 
                 element.addEventListener('click', () => {
                     openImageViewer(index, imagesArray);
+                    
+                    // Add to recently viewed
+                    if (!recentlyViewed.includes(image.id)) {
+                        recentlyViewed.unshift(image.id);
+                        // Keep only the 10 most recent
+                        if (recentlyViewed.length > 10) {
+                            recentlyViewed.pop();
+                        }
+                        localStorage.setItem('recentlyViewed', JSON.stringify(recentlyViewed));
+                    }
                 });
                 
                 return element;
@@ -1227,7 +1887,10 @@
                 
                 viewerImage.src = image.url;
                 document.getElementById('viewer-title').textContent = image.name;
-                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)} • ${image.location}`;
+                document.getElementById('viewer-views').textContent = image.views;
+                document.getElementById('viewer-likes').textContent = image.likes;
+                document.getElementById('viewer-downloads').textContent = image.downloads;
                 
                 // Update favorite button
                 const favoriteIcon = viewerFavorite.querySelector('i');
@@ -1237,6 +1900,59 @@
                 
                 // Prevent body scrolling
                 document.body.style.overflow = 'hidden';
+                
+                // Apply face recognition if enabled
+                applyFaceRecognition();
+            }
+            
+            // Apply face recognition (demo)
+            function applyFaceRecognition() {
+                // Clear any existing face overlays
+                document.querySelectorAll('.face-overlay, .face-label').forEach(el => el.remove());
+                
+                // For demo purposes, we'll just add some random face boxes
+                if (document.getElementById('face-recognition-toggle').checked) {
+                    const container = document.getElementById('viewer-image-container');
+                    const img = document.getElementById('viewer-image');
+                    
+                    // Wait for image to load
+                    if (img.complete) {
+                        addDemoFaces(container, img);
+                    } else {
+                        img.addEventListener('load', () => {
+                            addDemoFaces(container, img);
+                        });
+                    }
+                }
+            }
+            
+            // Add demo face recognition boxes
+            function addDemoFaces(container, img) {
+                const numFaces = Math.floor(Math.random() * 3) + 1;
+                const names = ['Alex', 'Taylor', 'Jordan', 'Morgan', 'Casey', 'Riley'];
+                
+                for (let i = 0; i < numFaces; i++) {
+                    const width = Math.random() * 100 + 50;
+                    const height = width * (0.8 + Math.random() * 0.4);
+                    const left = Math.random() * (img.width - width);
+                    const top = Math.random() * (img.height - height);
+                    
+                    const faceOverlay = document.createElement('div');
+                    faceOverlay.className = 'face-overlay';
+                    faceOverlay.style.width = `${width}px`;
+                    faceOverlay.style.height = `${height}px`;
+                    faceOverlay.style.left = `${left}px`;
+                    faceOverlay.style.top = `${top}px`;
+                    
+                    const faceLabel = document.createElement('div');
+                    faceLabel.className = 'face-label';
+                    faceLabel.textContent = names[Math.floor(Math.random() * names.length)];
+                    faceLabel.style.left = `${left}px`;
+                    faceLabel.style.top = `${top - 25}px`;
+                    
+                    container.appendChild(faceOverlay);
+                    container.appendChild(faceLabel);
+                }
             }
             
             // Close image viewer
@@ -1245,6 +1961,11 @@
                 
                 // Allow body scrolling
                 document.body.style.overflow = 'auto';
+                
+                // Exit minimal mode if active
+                if (isMinimalMode) {
+                    toggleMinimalMode();
+                }
             }
             
             // Show next image
@@ -1254,11 +1975,17 @@
                 
                 viewerImage.src = image.url;
                 document.getElementById('viewer-title').textContent = image.name;
-                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)} • ${image.location}`;
+                document.getElementById('viewer-views').textContent = image.views;
+                document.getElementById('viewer-likes').textContent = image.likes;
+                document.getElementById('viewer-downloads').textContent = image.downloads;
                 
                 // Update favorite button
                 const favoriteIcon = viewerFavorite.querySelector('i');
                 favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
+                
+                // Apply face recognition if enabled
+                applyFaceRecognition();
             }
             
             // Show previous image
@@ -1268,11 +1995,17 @@
                 
                 viewerImage.src = image.url;
                 document.getElementById('viewer-title').textContent = image.name;
-                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)}`;
+                document.getElementById('viewer-details').textContent = `${formatDate(image.date)} • ${formatFileSize(image.size)} • ${image.location}`;
+                document.getElementById('viewer-views').textContent = image.views;
+                document.getElementById('viewer-likes').textContent = image.likes;
+                document.getElementById('viewer-downloads').textContent = image.downloads;
                 
                 // Update favorite button
                 const favoriteIcon = viewerFavorite.querySelector('i');
                 favoriteIcon.className = image.isFavorite ? 'fas fa-heart' : 'far fa-heart';
+                
+                // Apply face recognition if enabled
+                applyFaceRecognition();
             }
             
             // Toggle favorite
@@ -1321,6 +2054,20 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+                
+                // Update download count
+                image.downloads++;
+                document.getElementById('viewer-downloads').textContent = image.downloads;
+            }
+            
+            // Toggle minimal mode
+            function toggleMinimalMode() {
+                isMinimalMode = !isMinimalMode;
+                body.classList.toggle('minimal-mode', isMinimalMode);
+                
+                // Update button icon
+                const minimalIcon = viewerMinimal.querySelector('i');
+                minimalIcon.className = isMinimalMode ? 'fas fa-compress' : 'fas fa-expand';
             }
             
             // Format date
