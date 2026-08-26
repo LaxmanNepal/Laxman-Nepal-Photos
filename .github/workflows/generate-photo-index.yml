@@ -1,0 +1,37 @@
+name: Generate photo index
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Images/**'
+      - '.github/workflows/generate-photo-index.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build photos.json
+        shell: python
+        run: |
+          import json, os, re
+          from pathlib import Path
+          root=Path('Images')
+          out=[]
+          exts={'.jpg','.jpeg','.png','.webp','.gif','.bmp','.avif'}
+          for p in sorted(root.rglob('*')):
+              if p.is_file() and p.suffix.lower() in exts:
+                  rel=p.relative_to(root).as_posix()
+                  m=re.search(r'(?:IMG|PXL|Screenshot|VID)[_-](\d{4})(\d{2})(\d{2})',p.name,re.I)
+                  date=f'{m.group(1)}-{m.group(2)}-{m.group(3)}' if m else None
+                  out.append({'name':p.name,'path':rel,'url':'Images/'+rel,'date':date,'bytes':p.stat().st_size})
+          Path('photos.json').write_text(json.dumps({'version':2,'generated':__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat(),'source':'Images','count':len(out),'photos':out},ensure_ascii=False,indent=2)+'\n')
+      - name: Commit index
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add photos.json
+          git diff --cached --quiet || git commit -m 'chore: update generated photo index'
+          git push
