@@ -1,0 +1,37 @@
+name: Photo optimization metadata
+on:
+  push:
+    branches: [main]
+    paths: ['Images/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install image tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+      - name: Generate optimization manifest
+        shell: python
+        run: |
+          import json, subprocess
+          from pathlib import Path
+          root=Path('Images'); rows=[]
+          exts={'.jpg','.jpeg','.png','.webp','.avif'}
+          for p in root.rglob('*'):
+            if not p.is_file() or p.suffix.lower() not in exts: continue
+            try:
+              r=subprocess.run(['identify','-format','%w %h','--',str(p)],capture_output=True,text=True,timeout=15)
+              w,h=map(int,r.stdout.split())
+            except Exception: w=h=0
+            rows.append({'path':p.relative_to(root).as_posix(),'width':w,'height':h,'bytes':p.stat().st_size,'original':True,'thumbnail':'https://wsrv.nl/?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2FLaxmanNepal%2FLaxman-Nepal-Photos%40main%2FImages%2F'+p.relative_to(root).as_posix()+'&w=800&q=76&output=webp&il'})
+          Path('photo-optimization.json').write_text(json.dumps({'version':1,'photos':rows},indent=2)+'\n')
+      - name: Commit manifest
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add photo-optimization.json
+          git diff --cached --quiet || git commit -m 'chore: update photo optimization manifest'
+          git push
