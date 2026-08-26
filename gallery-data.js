@@ -1,2 +1,2 @@
-/* Generated-friendly local photo index hook. The UI can consume this later without changing its rendering layer. */
-window.LAXMAN_PHOTO_CONFIG={version:2,features:{pwa:true,offlineCache:true,smartPrefetch:true,virtualLoading:true,keyboardNavigation:true,swipeNavigation:true,favorites:true,share:true}};
+/* Gallery feature registry. */
+window.LAXMAN_PHOTO_CONFIG={version:3,features:{pwa:true,offlineCache:true,smartPrefetch:true,virtualLoading:true,keyboardNavigation:true,swipeNavigation:true,favorites:true,share:true,timeline:true,smartSearch:true,yearFilter:true,monthGrouping:true}};
