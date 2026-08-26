@@ -26,17 +26,18 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Inject performance layer
+      - name: Inject performance and advanced layers
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-          tag='<script src="./performance.js" defer></script>'
-          if 'performance.js' not in s:
-              s=s.replace('</head>',tag+'</head>')
-              p.write_text(s,encoding='utf-8')
+          for name in ('performance.js','advanced.js'):
+              tag=f'<script src="./{name}" defer></script>'
+              if name not in s:
+                  s=s.replace('</head>',tag+'</head>')
+          p.write_text(s,encoding='utf-8')
           PY
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
