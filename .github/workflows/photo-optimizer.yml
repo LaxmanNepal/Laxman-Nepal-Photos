@@ -1,3 +1,4 @@
+# Photo optimization pipeline — triggered to process the current Images library
 name: Optimize Photos to WebP
 
 on:
@@ -97,18 +98,15 @@ jobs:
           s = p.read_text(encoding='utf-8')
           original = s
 
-          # Prefer the generated recursive index instead of the GitHub directory API.
           api_pattern = re.compile(r"fetch\(['\"]https://api\.github\.com/repos/LaxmanNepal/Laxman-Nepal-Photos/contents/Images\?ref=main['\"]\)")
           s = api_pattern.sub("fetch('photos.json')", s)
 
-          # Replace the API response mapping with the generated photos.json mapping.
           s = re.sub(
               r"photos=data\.filter\(x=>x\.type==='file'&&/\\\.\(jpe\?g\|png\|webp\|gif\|bmp\)\$/i\.test\(x\.name\)\)\\s*\.map\(x=>\(\{id:x\.sha,name:x\.name,size:x\.size\|\|0,date:d,url:CDN\+encodeURIComponent\(x\.name\)\}\)\);",
               "photos=(data.photos||[]).filter(x=>!/(?:-thumb|-medium)\\.webp$/i.test(x.name)).map(x=>({id:x.path,name:x.name,size:x.bytes||0,date:x.date,url:CDN+x.path.split('/').map(encodeURIComponent).join('/'),thumb:x.thumb?CDN+x.thumb.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/'),medium:x.medium?CDN+x.medium.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/')}));",
               s
           )
 
-          # If the exact one-line mapping differs, patch the common filter/map fragment more broadly.
           if 'data.photos||[]' not in s:
               marker = "photos=data.filter(x=>x.type==='file'"
               start = s.find(marker)
@@ -118,7 +116,6 @@ jobs:
                       replacement = "photos=(data.photos||[]).filter(x=>!/(?:-thumb|-medium)\\.webp$/i.test(x.name)).map(x=>({id:x.path,name:x.name,size:x.bytes||0,date:x.date,url:CDN+x.path.split('/').map(encodeURIComponent).join('/'),thumb:x.thumb?CDN+x.thumb.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/'),medium:x.medium?CDN+x.medium.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/')}))"
                       s = s[:start] + replacement + s[end:]
 
-          # Use thumbnails in cards and medium images via srcset; viewer continues using full-size URL.
           s = s.replace('<img loading="lazy" src="\'+p.url+\'" alt="\'+p.name+\'">', '<img loading="lazy" decoding="async" src="\'+p.thumb+\'" srcset="\'+p.thumb+\' 480w, \'+p.medium+\' 1200w" sizes="(max-width:600px) 50vw,(max-width:900px) 33vw,25vw" alt="\'+p.name+\'">')
           s = s.replace("<img loading=\"lazy\" src=\"'+p.url+'\"", "<img loading=\"lazy\" decoding=\"async\" src=\"'+p.thumb+'\" srcset=\"'+p.thumb+' 480w, '+p.medium+' 1200w\" sizes=\"(max-width:600px) 50vw,(max-width:900px) 33vw,25vw\"")
 
