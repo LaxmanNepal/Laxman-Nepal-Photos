@@ -2,8 +2,7 @@ name: Optimize Photos to WebP
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -45,10 +44,16 @@ jobs:
 
       - name: Verify WebP output
         run: |
-          set -e
-          count=$(find Images -type f -name '*.webp' ! -name '*-thumb.webp' ! -name '*-medium.webp' | wc -l)
-          echo "Optimized WebP files: $count"
-          test "$count" -gt 0
+          set -eu
+          webp_count=$(find Images -type f -iname '*.webp' ! -iname '*-thumb.webp' ! -iname '*-medium.webp' | wc -l)
+          thumb_count=$(find Images -type f -iname '*-thumb.webp' | wc -l)
+          medium_count=$(find Images -type f -iname '*-medium.webp' | wc -l)
+          echo "Optimized WebP files: $webp_count"
+          echo "Thumbnail files: $thumb_count"
+          echo "Medium files: $medium_count"
+          test "$webp_count" -gt 0
+          test "$thumb_count" -gt 0
+          test "$medium_count" -gt 0
 
       - name: Generate photo index
         run: |
@@ -70,7 +75,6 @@ jobs:
               rel = p.relative_to(root).as_posix()
               match = re.search(r'(?:IMG|PXL|Screenshot|VID)[_-](\d{4})(\d{2})(\d{2})', p.name, re.I)
               date = f'{match.group(1)}-{match.group(2)}-{match.group(3)}' if match else None
-
               entry = {
                   'name': p.name,
                   'path': rel,
@@ -78,12 +82,10 @@ jobs:
                   'date': date,
                   'bytes': p.stat().st_size
               }
-
               if p.suffix.lower() == '.webp':
                   stem = str(p.relative_to(root).with_suffix(''))
                   entry['thumb'] = 'Images/' + stem + '-thumb.webp'
                   entry['medium'] = 'Images/' + stem + '-medium.webp'
-
               out.append(entry)
 
           payload = {
@@ -93,14 +95,11 @@ jobs:
               'count': len(out),
               'photos': out
           }
-
-          Path('photos.json').write_text(
-              json.dumps(payload, ensure_ascii=False, indent=2) + '\n',
-              encoding='utf-8'
-          )
+          Path('photos.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          print(f'Indexed {len(out)} photos')
           PY
 
-      - name: Commit results
+      - name: Commit optimized results
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
