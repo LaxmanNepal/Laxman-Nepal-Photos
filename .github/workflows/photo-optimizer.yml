@@ -6,6 +6,7 @@ on:
     paths:
       - 'Images/**'
       - 'scripts/optimize-images.js'
+      - 'index.html'
       - '.github/workflows/photo-optimizer.yml'
   workflow_dispatch:
 
@@ -39,6 +40,10 @@ jobs:
         env:
           MAX_WIDTH: 2400
           WEBP_QUALITY: 84
+          THUMB_WIDTH: 480
+          THUMB_QUALITY: 76
+          MEDIUM_WIDTH: 1200
+          MEDIUM_QUALITY: 82
           MIN_SAVINGS: 0.03
         run: node scripts/optimize-images.js
 
@@ -56,19 +61,25 @@ jobs:
           for p in sorted(root.rglob('*')):
               if not p.is_file() or p.suffix.lower() not in exts:
                   continue
+              if re.search(r'(?:-thumb|-medium)\.webp$', p.name, re.I):
+                  continue
               rel = p.relative_to(root).as_posix()
               m = re.search(r'(?:IMG|PXL|Screenshot|VID)[_-](\d{4})(\d{2})(\d{2})', p.name, re.I)
               date = f'{m.group(1)}-{m.group(2)}-{m.group(3)}' if m else None
-              out.append({
+              entry = {
                   'name': p.name,
                   'path': rel,
                   'url': 'Images/' + rel,
                   'date': date,
                   'bytes': p.stat().st_size
-              })
+              }
+              if p.suffix.lower() == '.webp':
+                  entry['thumb'] = 'Images/' + str(p.relative_to(root).with_suffix('')) + '-thumb.webp'
+                  entry['medium'] = 'Images/' + str(p.relative_to(root).with_suffix('')) + '-medium.webp'
+              out.append(entry)
 
           payload = {
-              'version': 3,
+              'version': 4,
               'generated': datetime.now(timezone.utc).isoformat(),
               'source': 'Images',
               'count': len(out),
@@ -76,11 +87,52 @@ jobs:
           }
           Path('photos.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
 
+      - name: Wire responsive images into gallery
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          original = s
+
+          # Prefer the generated recursive index instead of the GitHub directory API.
+          api_pattern = re.compile(r"fetch\(['\"]https://api\.github\.com/repos/LaxmanNepal/Laxman-Nepal-Photos/contents/Images\?ref=main['\"]\)")
+          s = api_pattern.sub("fetch('photos.json')", s)
+
+          # Replace the API response mapping with the generated photos.json mapping.
+          s = re.sub(
+              r"photos=data\.filter\(x=>x\.type==='file'&&/\\\.\(jpe\?g\|png\|webp\|gif\|bmp\)\$/i\.test\(x\.name\)\)\\s*\.map\(x=>\(\{id:x\.sha,name:x\.name,size:x\.size\|\|0,date:d,url:CDN\+encodeURIComponent\(x\.name\)\}\)\);",
+              "photos=(data.photos||[]).filter(x=>!/(?:-thumb|-medium)\\.webp$/i.test(x.name)).map(x=>({id:x.path,name:x.name,size:x.bytes||0,date:x.date,url:CDN+x.path.split('/').map(encodeURIComponent).join('/'),thumb:x.thumb?CDN+x.thumb.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/'),medium:x.medium?CDN+x.medium.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/')}));",
+              s
+          )
+
+          # If the exact one-line mapping differs, patch the common filter/map fragment more broadly.
+          if 'data.photos||[]' not in s:
+              marker = "photos=data.filter(x=>x.type==='file'"
+              start = s.find(marker)
+              if start >= 0:
+                  end = s.find(';', start)
+                  if end >= 0:
+                      replacement = "photos=(data.photos||[]).filter(x=>!/(?:-thumb|-medium)\\.webp$/i.test(x.name)).map(x=>({id:x.path,name:x.name,size:x.bytes||0,date:x.date,url:CDN+x.path.split('/').map(encodeURIComponent).join('/'),thumb:x.thumb?CDN+x.thumb.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/'),medium:x.medium?CDN+x.medium.split('/').map(encodeURIComponent).join('/'):CDN+x.path.split('/').map(encodeURIComponent).join('/')}))"
+                      s = s[:start] + replacement + s[end:]
+
+          # Use thumbnails in cards and medium images via srcset; viewer continues using full-size URL.
+          s = s.replace('<img loading="lazy" src="\'+p.url+\'" alt="\'+p.name+\'">', '<img loading="lazy" decoding="async" src="\'+p.thumb+\'" srcset="\'+p.thumb+\' 480w, \'+p.medium+\' 1200w" sizes="(max-width:600px) 50vw,(max-width:900px) 33vw,25vw" alt="\'+p.name+\'">')
+          s = s.replace("<img loading=\"lazy\" src=\"'+p.url+'\"", "<img loading=\"lazy\" decoding=\"async\" src=\"'+p.thumb+'\" srcset=\"'+p.thumb+' 480w, '+p.medium+' 1200w\" sizes=\"(max-width:600px) 50vw,(max-width:900px) 33vw,25vw\"")
+
+          if s == original:
+              print('No index patch was necessary or applicable.')
+          else:
+              p.write_text(s, encoding='utf-8')
+              print('Responsive gallery wiring applied.')
+
       - name: Commit optimized images and index
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add Images photos.json image-optimization-report.json
+          git add Images photos.json image-optimization-report.json index.html
           if git diff --cached --quiet; then
             echo 'No changes to commit.'
           else
