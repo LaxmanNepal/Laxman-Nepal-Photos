@@ -1,37 +1,89 @@
-name: Photo optimization metadata
+name: Optimize Photos to WebP
+
 on:
   push:
     branches: [main]
-    paths: ['Images/**']
+    paths:
+      - 'Images/**'
+      - 'scripts/optimize-images.js'
+      - '.github/workflows/photo-optimizer.yml'
   workflow_dispatch:
+
 permissions:
   contents: write
+
+concurrency:
+  group: photo-optimization
+  cancel-in-progress: false
+
 jobs:
   optimize:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Install image tools
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
-      - name: Generate optimization manifest
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Sharp
+        run: npm install --no-save sharp
+
+      - name: Convert and compress images
+        env:
+          MAX_WIDTH: 2400
+          WEBP_QUALITY: 84
+          MIN_SAVINGS: 0.03
+        run: node scripts/optimize-images.js
+
+      - name: Regenerate photo index
         shell: python
         run: |
-          import json, subprocess
+          import json, re
           from pathlib import Path
-          root=Path('Images'); rows=[]
-          exts={'.jpg','.jpeg','.png','.webp','.avif'}
-          for p in root.rglob('*'):
-            if not p.is_file() or p.suffix.lower() not in exts: continue
-            try:
-              r=subprocess.run(['identify','-format','%w %h','--',str(p)],capture_output=True,text=True,timeout=15)
-              w,h=map(int,r.stdout.split())
-            except Exception: w=h=0
-            rows.append({'path':p.relative_to(root).as_posix(),'width':w,'height':h,'bytes':p.stat().st_size,'original':True,'thumbnail':'https://wsrv.nl/?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2FLaxmanNepal%2FLaxman-Nepal-Photos%40main%2FImages%2F'+p.relative_to(root).as_posix()+'&w=800&q=76&output=webp&il'})
-          Path('photo-optimization.json').write_text(json.dumps({'version':1,'photos':rows},indent=2)+'\n')
-      - name: Commit manifest
+          from datetime import datetime, timezone
+
+          root = Path('Images')
+          out = []
+          exts = {'.jpg','.jpeg','.png','.webp','.gif','.bmp','.avif'}
+
+          for p in sorted(root.rglob('*')):
+              if not p.is_file() or p.suffix.lower() not in exts:
+                  continue
+              rel = p.relative_to(root).as_posix()
+              m = re.search(r'(?:IMG|PXL|Screenshot|VID)[_-](\d{4})(\d{2})(\d{2})', p.name, re.I)
+              date = f'{m.group(1)}-{m.group(2)}-{m.group(3)}' if m else None
+              out.append({
+                  'name': p.name,
+                  'path': rel,
+                  'url': 'Images/' + rel,
+                  'date': date,
+                  'bytes': p.stat().st_size
+              })
+
+          payload = {
+              'version': 3,
+              'generated': datetime.now(timezone.utc).isoformat(),
+              'source': 'Images',
+              'count': len(out),
+              'photos': out
+          }
+          Path('photos.json').write_text(json.dumps(payload, ensure_ascii=False, indent=2) + '\n')
+
+      - name: Commit optimized images and index
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add photo-optimization.json
-          git diff --cached --quiet || git commit -m 'chore: update photo optimization manifest'
-          git push
+          git add Images photos.json image-optimization-report.json
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+          else
+            git commit -m 'chore: compress photos and convert to WebP'
+            git push
+          fi
