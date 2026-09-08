@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'Images/**'
-      - 'scripts/optimize-images.js'
-      - 'index.html'
-      - '.github/workflows/photo-optimizer.yml'
   workflow_dispatch:
 
 permissions:
@@ -24,18 +19,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Install Sharp
-        run: npm install --no-save sharp
+        run: npm install --no-save sharp@0.34.3
 
       - name: Optimize images
         env:
@@ -48,9 +43,16 @@ jobs:
           MIN_SAVINGS: 0.03
         run: node scripts/optimize-images.js
 
-      - name: Generate photo index
-        shell: python
+      - name: Verify WebP output
         run: |
+          set -e
+          count=$(find Images -type f -name '*.webp' ! -name '*-thumb.webp' ! -name '*-medium.webp' | wc -l)
+          echo "Optimized WebP files: $count"
+          test "$count" -gt 0
+
+      - name: Generate photo index
+        run: |
+          python3 - <<'PY'
           import json, re
           from pathlib import Path
           from datetime import datetime, timezone
@@ -96,6 +98,7 @@ jobs:
               json.dumps(payload, ensure_ascii=False, indent=2) + '\n',
               encoding='utf-8'
           )
+          PY
 
       - name: Commit results
         run: |
